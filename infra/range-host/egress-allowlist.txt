@@ -1,0 +1,4 @@
+# Hostname suffixes the range hypervisor may reach through the egress proxy.
+# Edits apply immediately. A lone "*" allows everything (avoid).
+debian.org          # Debian packages and security updates
+proxmox.com         # Proxmox packages, keyring, appliance templates

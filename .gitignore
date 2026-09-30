@@ -1,0 +1,21 @@
+# secrets
+.env
+*.pem
+*.key
+
+# rust
+target/
+
+# python (if any helper libs)
+.venv/
+__pycache__/
+*.pyc
+
+# eval output
+logs/
+runs/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/

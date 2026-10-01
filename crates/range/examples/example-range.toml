@@ -1,0 +1,37 @@
+# Example range: a small three-host scenario across two segments.
+#
+# Segment names reference infra/network/segments.json by name. When that file
+# is absent, the crate falls back to a single built-in segment named "iso"
+# (bridge vmbr1) — in that case point every host at "iso" to plan offline.
+#
+# VMIDs are allocated as base_vmid + host index unless a host sets `vmid`
+# explicitly. The band 10000-19999 is reserved for ranges.
+
+name = "example"
+base_vmid = 10000
+
+[[hosts]]
+name     = "dc01"            # index 0 -> VMID 10000
+template = 9000
+segment  = "server"
+ip       = "10.78.30.10"
+cores    = 4
+memory   = 4096
+role     = "windows"
+
+[[hosts]]
+name     = "web01"           # index 1 -> VMID 10001
+template = 9000
+segment  = "dmz"
+ip       = "10.78.10.10"
+cores    = 2
+memory   = 2048
+role     = "linux"
+
+[[hosts]]
+name     = "user01"          # explicit VMID overrides base+index
+template = 9000
+segment  = "user"
+vmid     = 10050
+role     = "linux"
+# no `ip` -> DHCP from the segment router

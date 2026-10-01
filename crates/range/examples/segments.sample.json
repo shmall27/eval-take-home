@@ -1,0 +1,8 @@
+[
+  {"name":"dmz",    "bridge":"vmbr2", "cidr":"10.78.10.0/24", "gateway_ip":"10.78.10.1",
+   "dhcp_start":"10.78.10.100", "dhcp_end":"10.78.10.200", "domain":"dmz.range.lab"},
+  {"name":"user",   "bridge":"vmbr3", "cidr":"10.78.20.0/24", "gateway_ip":"10.78.20.1",
+   "dhcp_start":"10.78.20.100", "dhcp_end":"10.78.20.200", "domain":"user.range.lab"},
+  {"name":"server", "bridge":"vmbr4", "cidr":"10.78.30.0/24", "gateway_ip":"10.78.30.1",
+   "dhcp_start":"10.78.30.100", "dhcp_end":"10.78.30.200", "domain":"srv.range.lab"}
+]

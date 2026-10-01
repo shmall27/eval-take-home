@@ -2,6 +2,9 @@
 .env
 *.pem
 *.key
+# local Proxmox API token fetched from vanilla for the live test
+.pve-token.json
+pve-api-token.json
 
 # rust
 target/

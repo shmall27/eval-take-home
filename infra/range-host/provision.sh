@@ -24,7 +24,7 @@ lxc network create cathbr0 ipv4.address=10.77.0.1/24 ipv4.nat=true \
 
 # --- 3. allowlisted egress proxy as a user service (needs linger) -------------
 mkdir -p "$STATE" ~/.config/systemd/user && chmod 700 "$STATE"
-cp "$HERE/egress_proxy.py" "$HERE/smoke_api.py" "$STATE/"
+cp "$HERE/egress_proxy.py" "$HERE/pve.py" "$HERE/smoke_api.py" "$STATE/"
 [ -f "$STATE/egress-allowlist.txt" ] || cp "$HERE/egress-allowlist.txt" "$STATE/"
 cp "$HERE/cathedral-egress-proxy.service" ~/.config/systemd/user/
 systemctl --user daemon-reload && systemctl --user enable --now cathedral-egress-proxy
@@ -139,6 +139,9 @@ pveum user add harness@pve --comment "eval harness automation" 2>/dev/null || tr
 pveum acl modify / --users harness@pve --roles Administrator
 pveum user token add harness@pve harness --privsep 0 --output-format json > /root/.harness-token.json
 GUEST
+# Node firewall: accept traffic to the node only on lo and vmbr0 (see the file).
+lxc file push -q --mode 755 "$HERE/range-containment.nft" $VM/etc/nftables.conf </dev/null
+lxc exec $VM -- bash -c 'nft -f /etc/nftables.conf && systemctl enable -q nftables.service' </dev/null
 lxc file pull -q $VM/root/.harness-token.json "$STATE/pve-api-token.json" </dev/null
 lxc exec $VM -- shred -u /root/.harness-token.json </dev/null
 chmod 600 "$STATE/pve-api-token.json"

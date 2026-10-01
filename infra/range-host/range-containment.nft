@@ -1,0 +1,33 @@
+#!/usr/sbin/nft -f
+# Range containment for the Proxmox node. Installed as /etc/nftables.conf.
+#
+# The node accepts traffic addressed to itself only on loopback and the
+# management bridge (vmbr0). Anything a range guest sends to the node from a
+# range bridge (vmbr1 or any bridge the harness adds later) is dropped, and
+# the node never answers ARP there. Guest-to-guest traffic is bridged at
+# layer 2 and does not pass these hooks.
+#
+# Why this is needed: Linux answers ARP for any of its addresses on any
+# interface, so without this a guest that assigns itself a management-subnet
+# address can find the node and deliver packets to its API and SSH ports.
+#
+# Own tables only; never `flush ruleset`, which would wipe Proxmox's rules.
+
+table inet range_containment
+delete table inet range_containment
+table inet range_containment {
+    chain input {
+        type filter hook input priority -10; policy accept;
+        iifname { "lo", "vmbr0" } accept
+        counter drop
+    }
+}
+
+table arp range_containment
+delete table arp range_containment
+table arp range_containment {
+    chain input {
+        type filter hook input priority 0; policy accept;
+        iifname != "vmbr0" counter drop
+    }
+}

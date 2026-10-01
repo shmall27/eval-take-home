@@ -34,6 +34,7 @@ this repo:
 | `pve-root-password` | Proxmox `root@pam` password (web login) |
 | `pve-api-token.json` | API token `harness@pve!harness` for automation |
 | `id_ed25519` | SSH key for `root@10.77.0.10` (fallback to `lxc exec`) |
+| `win-template-admin-password` | Local `Administrator` password baked into the Windows template |
 | `egress-allowlist.txt` | Hostname suffixes the proxy will reach |
 | `egress.log` | Every proxied request with ALLOW/DENY verdict |
 
@@ -55,13 +56,18 @@ isolation here is a default, not an option.
   (Docker sets FORWARD to DROP). Verified: direct ping and TCP from the Proxmox
   node to 1.1.1.1 both fail.
 - **One egress point.** `egress_proxy.py` serves only `10.77.0.0/24`, reaches
-  only allowlisted hostnames (currently `debian.org`, `proxmox.com`), and logs
+  only allowlisted hostnames (Debian, Proxmox, and the two hosts the Windows
+  template build downloads from), and logs
   every request. Verified: `example.com` returns 403. Stop the unit
   (`systemctl --user stop cathedral-egress-proxy`) and there is no egress at all.
-- **Range guests are one layer further in.** `vmbr1` has no uplink, and the
-  Proxmox node holds no IPv4 or IPv6 address on it, so guests there have no
-  path to the proxy, the management address, or `vanilla`. This is by
-  construction; it has not yet been probed from inside a real guest.
+- **Range guests are one layer further in.** `vmbr1` has no uplink and the
+  Proxmox node holds no address on it. The node also runs
+  `range-containment.nft`: it accepts traffic to itself only on loopback and
+  `vmbr0`, and never answers ARP on any other bridge, including bridges added
+  later. Probed from inside real Windows guests on `vmbr1`, addressed inside
+  the management subnet as the worst case: the Proxmox API, its SSH, the egress
+  proxy, and the internet are all unreachable and unresolvable, while the two
+  guests reach each other normally (`../windows/verify_clone.py`).
 - **Not on the LAN.** The Proxmox web interface is reachable only from
   `vanilla` itself or through an SSH tunnel.
 
@@ -79,13 +85,20 @@ on `vmbr1`, start it under nested KVM, snapshot with RAM, roll back, destroy.
 | start (nested KVM) | 0.6 s |
 | snapshot with RAM | 1.2 s |
 | rollback | 0.9 s |
-| next operation accepted after a live rollback | ~30 s |
+| next state change accepted after a live rollback | ~30 s |
 
 The last row matters for the harness. After a live rollback, Proxmox's cleanup
 handler for the replaced QEMU process holds the VM's lock, and state-changing
-calls fail with a lock timeout until it releases. Reads still work. The
-harness should retry on lock timeout, or reset by rolling back a stopped VM.
-These timings are for an empty 512 MB guest; real guests will be slower.
+calls (stop, another snapshot, config changes) fail with a lock timeout until
+it releases. Reads and guest-agent commands work immediately, so a rolled-back
+guest is usable at once; only the next lifecycle operation has to wait or
+retry. These timings are for an empty 512 MB guest. Timings for real Windows
+guests are in [`../windows/README.md`](../windows/README.md).
+
+## Windows
+
+A sysprepped Windows Server 2022 template (VM 9000) is built and verified. See
+[`../windows/README.md`](../windows/README.md).
 
 ## Known limitations
 

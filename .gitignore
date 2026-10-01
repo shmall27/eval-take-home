@@ -23,3 +23,6 @@ runs/
 .idea/
 .vscode/
 .claude/
+
+# Harbor run outputs
+jobs/

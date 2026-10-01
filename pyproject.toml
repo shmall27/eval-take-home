@@ -1,0 +1,14 @@
+[project]
+name = "cathedral-eval"
+version = "0.0.0"
+description = "Cyber-eval harness: Inspect Cyber agent/scoring over a Proxmox range"
+requires-python = ">=3.11"
+dependencies = [
+    "inspect-ai>=0.3.273",
+    "inspect-cyber>=0.1.0",
+    "inspect-proxmox-sandbox>=0.0.1",
+    "openai>=3.22.1",
+]
+
+[tool.uv]
+# deps added via `uv add` so versions are pinned in uv.lock (committed)

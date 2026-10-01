@@ -132,3 +132,7 @@ DHCP path has been exercised end to end against the live range.
 Integration verified: a one-host DHCP range applied onto the `server` segment
 (vmbr4) received a lease (10.78.30.x) and DNS from the range router and could
 reach neither the hypervisor, the egress proxy, nor the internet.
+
+## Status: superseded for provisioning (2026-10-01)
+
+The project switched the agent loop and range to Inspect Cyber + `inspect_proxmox_sandbox`, which provisions multi-host Proxmox ranges out of the box. This crate is kept for reference and as the natural home for a branching/snapshot-fan-out engine, which the stock tooling does not provide. It is not on the critical path for the eval.

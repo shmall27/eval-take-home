@@ -1,0 +1,1 @@
+FLAG{inspect_cyber_smoke_ok}

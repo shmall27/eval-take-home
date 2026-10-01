@@ -1,0 +1,32 @@
+[package]
+name = "range"
+version = "0.1.0"
+edition = "2021"
+description = "Compiles a declarative cyber-range definition into Proxmox operations."
+license = "MIT"
+
+[[bin]]
+name = "range"
+path = "src/main.rs"
+
+[lib]
+name = "range"
+path = "src/lib.rs"
+
+[features]
+# Off by default so `cargo test` stays offline. Enables the live Proxmox
+# integration test (tests/live.rs) that talks to a real node over the tunnel.
+live = []
+
+[dependencies]
+anyhow = "1"
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+clap = { version = "4", features = ["derive"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "native-tls"] }
+urlencoding = "2"
+
+[dev-dependencies]
+tempfile = "3"

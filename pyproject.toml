@@ -6,9 +6,12 @@ requires-python = ">=3.11"
 dependencies = [
     "inspect-ai>=0.3.273",
     "inspect-cyber>=0.1.0",
-    "inspect-proxmox-sandbox>=0.0.1",
+    "inspect-proxmox-sandbox",
     "openai>=3.22.1",
 ]
 
 [tool.uv]
+
+[tool.uv.sources]
+inspect-proxmox-sandbox = { git = "https://github.com/UKGovernmentBEIS/inspect_proxmox_sandbox.git", rev = "1ba893904a5d07d027c496ea42c6c47321625e4c" }
 # deps added via `uv add` so versions are pinned in uv.lock (committed)

@@ -1,32 +1,50 @@
-# Running the smoke task on the Proxmox sandbox
+# Running on the Proxmox sandbox (status + remaining steps)
 
-The smoke task is green on Docker. To run the *same* task on
-`inspect_proxmox_sandbox` against our nested Proxmox (`cathedral-pve`, 10.77.0.10),
-reconcile these before switching `tasks/smoke/eval.yaml`'s sandbox to `proxmox`:
+## What is proven
 
-1. **Storage content types.** The provider expects `import` among the allowed
-   types on `local`. We set most already; add it:
-   `pvesm set local --content iso,vztmpl,backup,snippets,images,rootdir,import`.
-2. **Guest agent on every image.** Our Windows template has it. A Linux image for
-   the agent host needs qemu-guest-agent (the provider ships ubuntu24.04,
-   debian13, kali2025.4 built-ins, which already include it).
-3. **Windows template is BIOS.** The provider's Windows path wants
-   `uefi_boot=True` and `os_type=win11` (plus a vTPM for 11). Rebuild the template
-   as UEFI, or use a Linux agent host for now.
-4. **Static IPs need a Nov 2025 Proxmox patch.** Check it against our 9.2 build,
-   or rely on the provider's SDN DHCP instead of static IPs.
-5. **Networking is the provider's SDN**, not our `vmbr2-4` + router fabric. The
-   provider defines vnets/subnets per eval (CIDR, gateway, DHCP). Our fabric is
-   not used by this path; its containment lessons carry, the implementation does
-   not.
-6. **Reach the API.** From the Mac, tunnel: `ssh -f -N -L 8006:10.77.0.10:8006 vanilla`.
-   Point `PROXMOX_CONFIG_FILE` at an instance JSON using `https://localhost:8006`
-   and the `harness@pve!harness` token on vanilla. Or run Inspect on vanilla.
+- **Harness + model on vanilla (the Linux execution host):** `uv sync` from the
+  committed lock reproduces the env on vanilla, and GLM-5.3 answers through
+  Inspect from vanilla. Repo lives at `~/cathedral-take-home` on vanilla.
+- **Smoke task green on Docker (Mac only):** the agent finds the flag, scorer
+  returns 1.0.
 
-Then set, in `tasks/smoke/eval.yaml`:
-```yaml
-sandbox:
-  type: proxmox
-  config: <proxmox sandbox config>
-```
-and run the same `inspect eval` command. The task body does not change.
+## Important correction (2026-10-01)
+
+The PyPI `inspect-proxmox-sandbox==0.0.1` is an empty stub (a 22-byte
+`__init__.py`). The real provider is `0.11.0` and ships only from GitHub. The
+dependency is now pinned to a specific commit of
+`github.com/UKGovernmentBEIS/inspect_proxmox_sandbox` in `pyproject.toml` /
+`uv.lock`. It registers the sandbox type **`proxmox`** and includes real SDN,
+storage, built-in-VM, cloud-init ISO, and guest-agent code.
+
+## Remaining to run the smoke task on Proxmox (not yet done)
+
+The provider provisions its own VMs, so this is an iterative setup, not a
+one-liner. Run the harness **on vanilla** (the API at 10.77.0.10 is local there;
+no tunnel needed).
+
+1. **Provider connection.** Set `PROXMOX_CONFIG_FILE` (instances JSON) or the
+   `PROXMOX_HOST/PORT/USER/REALM/PASSWORD` or token, `PROXMOX_NODE=cathedral-pve`,
+   `PROXMOX_VERIFY_TLS=false`, `PROXMOX_IMAGE_STORAGE=local`. Confirm whether it
+   accepts an API token or wants a PAM user+password.
+2. **Storage:** `import` content type added to `local`. Done.
+3. **SDN + dnsmasq on the node.** The provider configures Proxmox SDN itself and
+   needs dnsmasq for IPAM DHCP/DNS. `libpve-network` is present; dnsmasq is not.
+   Install it on the node via `lxc exec cathedral-pve -- apt-get install dnsmasq`
+   (goes through the allowlisted proxy; dnsmasq is in the Debian repos). No
+   vanilla sudo needed; we have root inside the node via `lxc exec`.
+4. **Image egress.** The provider builds VMs from base images it fetches. The
+   node has no direct internet, only the allowlisted proxy. Identify the image
+   source host and add it to `~/cathedral/egress-allowlist.txt`, or pre-seed the
+   image into `local`.
+5. **Static IPs** need a November 2025 Proxmox patch; otherwise use the
+   provider's SDN DHCP.
+6. **Switch the task:** set `tasks/smoke/eval.yaml` sandbox to
+   `type: proxmox` with the provider's config, and run the same `inspect eval`.
+
+## The Docker-on-vanilla alternative
+
+Docker on vanilla is blocked: the `sam` account is not in the `docker` group, so
+it needs `sudo usermod -aG docker sam` (then re-login). With that, the Docker
+smoke path works on vanilla immediately, matching the Mac. The Proxmox sandbox is
+the real target; Docker is only the fast dev loop.

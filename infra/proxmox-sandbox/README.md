@@ -43,3 +43,33 @@ A real range needs networking, so it needs SDN. Install dnsmasq on the node
 (`apt-get install dnsmasq` via the proxy) for Proxmox IPAM, then use
 `sdn_config="auto"` or an explicit `SdnConfig`, and give VMs `nics`. Static IPs
 need a November 2025 Proxmox patch; otherwise use SDN DHCP.
+
+## Networking (SDN) — available and verified
+
+Multi-host ranges with networking now work. `harness/net_check.py` stands up two
+VMs on one SDN vnet and passes (accuracy 1.0): both get DHCP leases, reach each
+other, and cannot reach the internet or the hypervisor.
+
+What it took:
+
+- **dnsmasq on the node** for Proxmox SDN IPAM (`apt-get install dnsmasq` via the
+  proxy, then `systemctl disable --now dnsmasq` so Proxmox runs its own per-vnet
+  instances).
+- **Template brings its own NIC config.** Cloud-init is disabled, so the template
+  bakes a systemd-networkd rule that DHCPs any ethernet (`build_linux_template.sh`).
+  It also now includes ping, curl, netcat, dnsutils, and python3.
+- **Containment firewall fix.** The node's `range-containment.nft` dropped all
+  input except on vmbr0, which also dropped the guest's DHCP request to the SDN
+  dnsmasq (it listens on the vnet bridge). It now permits DHCP and DNS (udp 53/67,
+  tcp 53) while still dropping everything else from a range bridge, so the control
+  plane stays unreachable. The old ARP-drop table was removed as redundant and
+  SDN-breaking (the input chain already blocks the data plane).
+
+Config pattern for a networked range (see `net_check.py`): an `SdnConfig` with a
+`VnetConfig` whose `SubnetConfig` has `snat=False` (no egress) and a DHCP range,
+and `VmConfig`s with `nics=(VmNicConfig(vnet_alias=...),)`.
+
+Run it (on vanilla, with the PROXMOX_* env):
+```
+uv run inspect eval harness/net_check.py --model openrouter/z-ai/glm-5.3
+```

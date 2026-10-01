@@ -1,17 +1,20 @@
 #!/usr/sbin/nft -f
-# Range containment for the Proxmox node. Installed as /etc/nftables.conf.
+# Range containment for the Proxmox node.
 #
 # The node accepts traffic addressed to itself only on loopback and the
-# management bridge (vmbr0). Anything a range guest sends to the node from a
-# range bridge (vmbr1 or any bridge the harness adds later) is dropped, and
-# the node never answers ARP there. Guest-to-guest traffic is bridged at
-# layer 2 and does not pass these hooks.
+# management bridge (vmbr0), PLUS the SDN services a range legitimately needs
+# from the node (DHCP and DNS from the per-vnet dnsmasq). Everything else a
+# range guest sends to the node itself (the API on 8006, SSH, ...) is dropped,
+# so a guest that self-assigns a management address still cannot reach the
+# control plane. Guest-to-guest traffic is bridged at layer 2 and never hits
+# this hook.
 #
-# Why this is needed: Linux answers ARP for any of its addresses on any
-# interface, so without this a guest that assigns itself a management-subnet
-# address can find the node and deliver packets to its API and SSH ports.
+# Note: an earlier version also dropped ARP on non-vmbr0 interfaces. That broke
+# SDN (the guest could not complete DHCP/resolve its gateway), and it was
+# redundant: this input chain already drops the data-plane packets to the node's
+# management services regardless of ARP. So ARP filtering was removed.
 #
-# Own tables only; never `flush ruleset`, which would wipe Proxmox's rules.
+# Own table only; never `flush ruleset`, which would wipe Proxmox's own rules.
 
 table inet range_containment
 delete table inet range_containment
@@ -19,15 +22,10 @@ table inet range_containment {
     chain input {
         type filter hook input priority -10; policy accept;
         iifname { "lo", "vmbr0" } accept
+        # SDN services the range needs from the node (per-vnet dnsmasq):
+        udp dport { 53, 67 } accept
+        tcp dport 53 accept
+        # Everything else from a range bridge to the node is dropped:
         counter drop
-    }
-}
-
-table arp range_containment
-delete table arp range_containment
-table arp range_containment {
-    chain input {
-        type filter hook input priority 0; policy accept;
-        iifname != "vmbr0" counter drop
     }
 }

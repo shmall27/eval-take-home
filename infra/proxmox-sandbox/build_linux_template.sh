@@ -23,10 +23,15 @@ mkdir -p "$WORK"
 [ -f "$IMG" ] || { wget -q "$URL" -O "$IMG.part" && mv "$IMG.part" "$IMG"; }
 
 printf 'Acquire::http::Proxy "%s";\nAcquire::https::Proxy "%s";\n' "$PROXY" "$PROXY" > /tmp/80proxy
+# DHCP any ethernet via systemd-networkd (cloud-init is disabled, so configure the
+# NIC ourselves; harmless for no-NIC VMs).
+printf '[Match]\nName=e*\n\n[Network]\nDHCP=ipv4\n' > /tmp/10-dhcp.network
 virt-customize -a "$IMG" \
   --copy-in /tmp/80proxy:/etc/apt/apt.conf.d/ \
-  --install qemu-guest-agent \
+  --install qemu-guest-agent,iputils-ping,curl,netcat-openbsd,dnsutils,python3 \
   --run-command 'systemctl enable qemu-guest-agent' \
+  --copy-in /tmp/10-dhcp.network:/etc/systemd/network/ \
+  --run-command 'systemctl enable systemd-networkd' \
   --run-command 'touch /etc/cloud/cloud-init.disabled' \
   --delete /etc/apt/apt.conf.d/80proxy
 

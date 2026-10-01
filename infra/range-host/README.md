@@ -62,12 +62,13 @@ isolation here is a default, not an option.
   (`systemctl --user stop cathedral-egress-proxy`) and there is no egress at all.
 - **Range guests are one layer further in.** `vmbr1` has no uplink and the
   Proxmox node holds no address on it. The node also runs
-  `range-containment.nft`: it accepts traffic to itself only on loopback and
-  `vmbr0`, and never answers ARP on any other bridge, including bridges added
-  later. Probed from inside real Windows guests on `vmbr1`, addressed inside
-  the management subnet as the worst case: the Proxmox API, its SSH, the egress
-  proxy, and the internet are all unreachable and unresolvable, while the two
-  guests reach each other normally (`../windows/verify_clone.py`).
+  `range-containment.nft`: it accepts traffic to itself only on loopback,
+  `vmbr0`, and the SDN services a range legitimately needs (DHCP and DNS from
+  the per-vnet dnsmasq); everything else from a range bridge to the node (the
+  API on 8006, SSH) is dropped. Probed from inside real guests: the Proxmox
+  API, its SSH, the egress proxy, and the internet are all unreachable, while
+  guests on the same segment reach each other normally
+  (`../windows/verify_clone.py`, `../../harness/net_check.py`).
 - **Not on the LAN.** The Proxmox web interface is reachable only from
   `vanilla` itself or through an SSH tunnel.
 

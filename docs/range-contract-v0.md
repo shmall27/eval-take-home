@@ -62,7 +62,15 @@ via guest agent, snapshot each as `clean`) → `reset` (roll every host back to
 ## Reset model
 
 Build a range once, snapshot every host (`clean`), reset by rolling all hosts
-back. First boot of a fresh clone is minutes; rollback is seconds. After a live
+back. First boot of a fresh clone is minutes; rollback is seconds.
+
+**Readiness gate (harness TODO):** `apply` currently snapshots `clean`
+immediately after `start`, so for a DHCP host the baseline captures a
+mid-boot state. The clean snapshot should instead be taken after a readiness
+gate (guest agent up, and for Windows the specialize/OOBE pass complete), so a
+reset returns to a fully-booted machine. A Rust-applied Windows clone was
+network-ready (DHCP + containment verified) but its first boot ran long under
+load. After a live
 rollback, lifecycle calls on that VM hit a ~30 s lock (reads and guest-agent
 exec work immediately). Control guests through the guest agent, not the network.
 
@@ -84,8 +92,10 @@ exec work immediately). Control guests through the guest agent, not the network.
   `cathedral-pve`. Token at `~/cathedral/pve-api-token.json` on vanilla. Python
   reference client: `infra/range-host/pve.py`.
 - The API (10.77.0.10) is reachable **from vanilla directly**, and from the Mac
-  only through a tunnel: `ssh -F /dev/null -N -L 8006:10.77.0.10:8006 vanilla`
-  then hit `https://localhost:8006`. Plain `ssh vanilla` has forwards in
-  `~/.ssh/config`; use `-F /dev/null` when adding your own `-L`.
+  only through a tunnel. Plain `ssh -f -N -L 8006:10.77.0.10:8006 vanilla`
+  works (reuses `~/.ssh/config`; its existing forwards don't clash with 8006);
+  then hit `https://localhost:8006`. Do NOT add `-F /dev/null` here: it bypasses
+  the config and drops the Tailscale SSH user, so the connection fails unless
+  you also pass `-l sam -i ~/.ssh/id_ed25519`.
 - Secrets (token, passwords) stay on vanilla under `~/cathedral/`; never commit
   them.

@@ -119,3 +119,16 @@ PVE_BASE_URL=https://localhost:8006/api2/json \
 PVE_TOKEN_FILE=$PWD/.pve-token.json \
     cargo test --features live -- --ignored live_apply_reset_destroy --nocapture
 ```
+
+## Known limitation (verified 2026-10-01)
+
+`apply` emits the `clean` snapshot right after `start`. For a static-IP host the
+executor first waits for the guest agent (to set the IP), but a DHCP host has no
+such gate, so its snapshot captures a mid-boot state. The clean baseline should
+be taken after a readiness check (agent up; for Windows, specialize/OOBE done).
+The static-IP guest commands in `guest.rs` are also image-specific and only the
+DHCP path has been exercised end to end against the live range.
+
+Integration verified: a one-host DHCP range applied onto the `server` segment
+(vmbr4) received a lease (10.78.30.x) and DNS from the range router and could
+reach neither the hypervisor, the egress proxy, nor the internet.

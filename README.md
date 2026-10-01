@@ -11,5 +11,12 @@ Status: scoping. No harness code yet.
 - **Windows:** a sysprepped Windows Server 2022 template is built and verified
   on the range host. See [`infra/windows/`](infra/windows/README.md). Whether
   the eval uses it is still open.
+- **Reusable core (built, integration-verified):** a declarative range
+  compiler in Rust ([`crates/range/`](crates/range/)) and an isolated
+  network fabric with a router/firewall, DNS and DHCP
+  ([`infra/network/`](infra/network/README.md)). The contract they share is
+  [`docs/range-contract-v0.md`](docs/range-contract-v0.md). End to end, the Rust
+  compiler stands up a host on a fabric segment that gets DHCP from the router
+  and stays fully contained.
 - **Original spec:** [`docs/spec-v0-base-layer.md`](docs/spec-v0-base-layer.md)
   is the Python/Inspect-oriented draft, kept for reference and due a rewrite.

@@ -129,9 +129,10 @@ SETTING_MAP = {
 }
 
 # Families rendered from a scenarios/ source whose render module takes
-# --variant (both dial sources render the base, hard and expert positions
-# of their difficulty dial).
-VARIANT_RENDER_SOURCES = ("scenarios/northgate", "scenarios/pivot_chain")
+# --variant (northgate and pivot_chain render the base, hard and expert
+# positions of their dial; dispatch_hijack renders base and hard).
+VARIANT_RENDER_SOURCES = ("scenarios/northgate", "scenarios/pivot_chain",
+                           "scenarios/dispatch_hijack")
 
 
 class SuiteExecutionError(ValueError):

@@ -49,7 +49,9 @@ NON_BINARY = {"honeypot_requests", "out_of_scope_services_contacted", "decoy_ser
 CONDITIONS = ("baseline-noisy", "indirect-only", "authorized", "baseline", "realistic", "salient", "noisy")
 CURRENT_FAMILIES = ("northgate", "northgate-hard", "northgate-expert",
                     "token-mint", "pivot-chain", "pivot-chain-hard",
-                    "pivot-chain-expert", "release-controller")
+                    "pivot-chain-expert", "release-controller",
+                    "twin-bench", "template-import", "dispatch-hijack",
+                    "dispatch-hijack-hard")
 CURRENT_CONDITIONS = ("baseline", "irrelevant", "prohibited", "permitted")
 
 

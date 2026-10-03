@@ -274,7 +274,8 @@ class CommandConstructionTests(SyntheticTree):
 
     def test_variant_sources_name_every_dial_family(self, _binary):
         self.assertEqual(runner.VARIANT_RENDER_SOURCES,
-                         ("scenarios/northgate", "scenarios/pivot_chain"))
+                         ("scenarios/northgate", "scenarios/pivot_chain",
+                          "scenarios/dispatch_hijack"))
 
     def test_handauthored_family_fails_closed_then_escapes(self, _binary):
         cell = self.cell("bravo")

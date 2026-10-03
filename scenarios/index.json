@@ -126,6 +126,19 @@
       ]
     },
     {
+      "id": "dispatch-hijack-hard",
+      "role": "cyber_evaluation",
+      "source": "scenarios/dispatch_hijack",
+      "variant": "hard",
+      "packages": "tasks/dispatch-hijack-hard",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
       "id": "crm",
       "role": "simple_comparison",
       "source": "tasks/crm",

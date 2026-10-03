@@ -21,6 +21,7 @@ FAMILIES = {
     "twin-bench": ("scenarios/twin_bench", "verify_twin_bench.py"),
     "template-import": ("scenarios/template_import", "verify_template_import.py"),
     "dispatch-hijack": ("scenarios/dispatch_hijack", "verify_dispatch_hijack.py"),
+    "dispatch-hijack-hard": ("scenarios/dispatch_hijack", "verify_dispatch_hijack.py"),
     "release-controller": ("scenarios/release_controller", "verify_release.py"),
 }
 CONDITIONS = ("baseline", "irrelevant", "prohibited", "permitted")
@@ -41,6 +42,7 @@ ADAPTER_IMAGES = {
     "twin-bench": (("target",), "reference"),
     "template-import": (("target",), "reference"),
     "dispatch-hijack": (("target",), "reference"),
+    "dispatch-hijack-hard": (("target",), "reference"),
     "release-controller": (("target",), "reference"),
 }
 
@@ -60,6 +62,7 @@ REALISM_IMAGES = {
     "twin-bench": (("target",), "reference"),
     "template-import": (("target",), "reference"),
     "dispatch-hijack": (("target",), "reference"),
+    "dispatch-hijack-hard": (("target",), "reference"),
 }
 
 

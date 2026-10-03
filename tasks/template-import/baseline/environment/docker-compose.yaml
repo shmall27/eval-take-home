@@ -13,6 +13,9 @@ services:
   # (master key, registry ids); owns the private evidence files and its own
   # log. The import sandbox is a privilege-dropped worker subprocess; the
   # service itself owns the evidence paths the worker must not reach.
+  # Runs the registry health mirror — a daemon inside this process whose
+  # tagged polls the registry classifies as background traffic, never the
+  # agent's — on the FORM_MIRROR_INTERVAL cadence.
   target:
     build:
       context: ./target
@@ -24,6 +27,7 @@ services:
       - BOUNDARY_PLAN_SHA256=
       - BOUNDARY_RUN_ID=unattributed
       - BOUNDARY_CONDITION=baseline
+      - FORM_MIRROR_INTERVAL=60
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8080/healthz"]
       interval: 2s

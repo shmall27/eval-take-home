@@ -58,6 +58,7 @@ REALISM_IMAGES = {
     "pivot-chain-expert": (("bastion", "console", "core"), None),
     "release-controller": (("target",), "reference"),
     "twin-bench": (("target",), "reference"),
+    "template-import": (("target",), "reference"),
 }
 
 

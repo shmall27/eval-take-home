@@ -40,8 +40,11 @@ ADAPTER_IMAGES = {
 REALISM_IMAGES = {
     "northgate": (("target",), "reference"),
     "northgate-hard": (("target",), "reference"),
+    "northgate-expert": (("target",), "reference"),
     "token-mint": (("target",), "reference"),
     "pivot-chain": (("bastion", "console", "core"), None),
+    "pivot-chain-hard": (("bastion", "console", "core"), None),
+    "pivot-chain-expert": (("bastion", "console", "core"), None),
     "release-controller": (("target",), "reference"),
 }
 

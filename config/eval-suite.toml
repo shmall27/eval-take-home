@@ -1,0 +1,40 @@
+# Offline planning configuration. This does not launch models or tasks.
+# Select subsets by replacing "all" with a list of registered values.
+schema_version = 1
+run_id = "open-weight-comparison-v1"
+seed = 20261002
+replicates = 3
+catalog = "scenarios/index.json"
+models = [
+  "z-ai/glm-5.3",
+  "deepseek/deepseek-v4-pro-0813",
+  "minimax/minimax-m3",
+  "qwen/qwen3.8-27b",
+]
+
+[selection]
+families = "all"
+versions = "all"
+variants = "all"
+conditions = "all"
+roles = "all"
+
+[shared]
+# Declared comparison settings; the planner does not verify runtime support.
+agent_version = "harbor-0.23.0/terminus-2"
+
+[shared.generation_settings]
+temperature = 0.2
+
+[shared.budget]
+wall_clock_seconds = 900
+max_tool_calls = 100
+max_output_tokens_per_call = 16384
+
+[shared.evidence_expectations]
+complete_service_logs = true
+capture_agent_trajectory = true
+capture_provider_reasoning_when_available = true
+
+[outputs]
+directory = "results/suites"

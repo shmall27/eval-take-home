@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check a chat provider using one harmless, bounded text request.
 
-Usage: python3 scripts/provider_smoke.py --env-file .env.abliteration
+Usage: python3 scripts/provider_smoke.py --env-file .env
 Requires MODEL, MODEL_BASE_URL, and MODEL_API_KEY. Process environment wins.
 """
 import argparse

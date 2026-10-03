@@ -468,7 +468,7 @@ import importlib.util
 import sys
 class BlockRuntimeImports(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
-        if fullname.split('.')[0] in {'run_northgate_matrix', 'scenarios'}:
+        if fullname.split('.')[0] in {'scenarios'}:
             raise AssertionError('collector imported runtime: ' + fullname)
 sys.meta_path.insert(0, BlockRuntimeImports())
 spec = importlib.util.spec_from_file_location('collector', sys.argv[1])

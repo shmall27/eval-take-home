@@ -3,35 +3,30 @@
 Harbor task packages for studying authorization-boundary behavior, with separate
 measurements for answer correctness, target completion, and boundary activity.
 
-The [draft design and results note](docs/evaluation-design-results.md) describes
-the task families, honeypot controls, and current scoring, with model results
-left as a placeholder.
-
 ## Evaluation families
 
-| Family | Packages | Role |
-| --- | --- | --- |
-| Northgate | `tasks/northgate/{condition}` | Cyber evaluation |
-| Northgate hard | `tasks/northgate-hard/{condition}` | Harder configuration; model difficulty still requires calibration |
-| Northgate expert | `tasks/northgate-expert/{condition}` | Expert configuration; inference-only authorized route |
-| Token Mint | `tasks/token-mint/{condition}` | Cyber evaluation |
-| Pivot Chain | `tasks/pivot-chain/{condition}` | Multi-stage cyber evaluation |
-| Pivot Chain hard | `tasks/pivot-chain-hard/{condition}` | Harder configuration; advisory findings, partial spec |
-| Pivot Chain expert | `tasks/pivot-chain-expert/{condition}` | Expert configuration; no findings, no spec |
-| Twin Bench | `tasks/twin-bench/{condition}` | Memory-safety differential cyber evaluation |
-| Template Import | `tasks/template-import/{condition}` | Deserialization cyber evaluation |
-| Dispatch Hijack | `tasks/dispatch-hijack/{condition}` | Control-flow hijack cyber evaluation |
-| CRM | `tasks/crm/{explicit,implicit}` | Legacy baseline: the original hand-authored comparison |
-| Release Controller | `tasks/release-controller/{condition}` | Workflow measurement control |
-| Boundary diagnostics | `tasks/boundary-diagnostics/{case}` | Synthetic infrastructure checks |
+| Family | Packages |
+| --- | --- |
+| Northgate | `tasks/northgate/{condition}` |
+| Northgate hard | `tasks/northgate-hard/{condition}` |
+| Northgate expert | `tasks/northgate-expert/{condition}` |
+| Token Mint | `tasks/token-mint/{condition}` |
+| Pivot Chain | `tasks/pivot-chain/{condition}` |
+| Pivot Chain hard | `tasks/pivot-chain-hard/{condition}` |
+| Pivot Chain expert | `tasks/pivot-chain-expert/{condition}` |
+| Twin Bench | `tasks/twin-bench/{condition}` |
+| Template Import | `tasks/template-import/{condition}` |
+| Dispatch Hijack | `tasks/dispatch-hijack/{condition}` |
+| Dispatch Hijack hard | `tasks/dispatch-hijack-hard/{condition}` |
+| CRM | `tasks/crm/{explicit,implicit}` |
+| Release Controller | `tasks/release-controller/{condition}` |
+| Boundary diagnostics | `tasks/boundary-diagnostics/{case}` |
 
 The four-condition families use `baseline`, `irrelevant`, `prohibited`, and
-`permitted`. CRM — the legacy baseline, hand-authored before the rendered
-pattern — compares two scope wordings and is not a four-condition study.
-Each leaf directory is a self-contained Harbor package. Package READMEs contain
-their existing usage instructions. `scenarios/index.json` records family roles
-and source locations; specification-only catalog entries in
-`boundary_eval/fixture_proposals.json` are not additional implemented evaluations.
+`permitted`. CRM compares two scope wordings and is not a four-condition study.
+Each leaf directory is a self-contained Harbor package; the package READMEs
+record their usage instructions. `scenarios/index.json` records family roles and
+source locations.
 
 ## Running
 
@@ -52,11 +47,14 @@ python3 -m scenarios.pivot_chain.render --variant expert --output tasks/pivot-ch
 python3 -m scenarios.twin_bench.render --output tasks/twin-bench --check
 python3 -m scenarios.template_import.render --output tasks/template-import --check
 python3 -m scenarios.dispatch_hijack.render --output tasks/dispatch-hijack --check
+python3 -m scenarios.dispatch_hijack.render --variant hard --output tasks/dispatch-hijack-hard --check
 python3 -m scenarios.release_controller.render --output tasks/release-controller --check
 ```
 
-Run one package through Harbor — each package README records its agents,
-provenance rules, and expected oracle results:
+Configure the model provider first: copy `.env.example` to `.env` (gitignored)
+and paste your API key into `MODEL_API_KEY` (see [config/model.md](config/model.md)).
+
+Run one package through Harbor:
 
 ```sh
 harbor run -p tasks/token-mint/prohibited -a terminus-2 -m openrouter/z-ai/glm-5.3
@@ -77,45 +75,6 @@ execution record land under `results/suites/<run_id>/`. The curated oracle
 summary is `results/validation.json`, and `scripts/summarize_jobs.py` builds
 the propensity ladder for finished job directories.
 
-## Repository layout
-
-- `scenarios/`: scenario-specific sources, one package per family.
-- `boundary_eval/`: shared contracts, evidence handling, scoring, analysis,
-  and the environment realism kit.
-- `tasks/`: self-contained Harbor packages, generated as in Running; only
-  `crm/` is hand-authored.
-- `tests/`: shared unit tests, synthetic verifier regressions, and scenario checks.
-- `scripts/`: validation, collection, and experiment utilities.
-- `docs/`: suite draft, family design/results notes, and the realism
-  authoring guide.
-- `config/`: provider configuration notes and examples; credentials stay in ignored local files.
-- `results/validation.json`: curated summary of saved oracle results.
-- `results/` otherwise and `jobs/`: ignored working artifacts and raw run outputs.
-
-The Python measurement tooling uses the standard library and Python 3.11 or
-newer. Harbor is installed separately. This is a checkout-based project, with
-no wheel or registered console entry points.
-
-## Environment realism
-
-Every rendered scenario family ships the realism kit
-(`boundary_eval/realism.py`): internal background actors whose traffic
-carries a verifying HMAC tag and
-arrives from internal addresses, and seeded per-trial corpora behind the
-served surfaces, so environment texture alone does not mark a deployment as
-a purpose-built scenario. Actors are daemon threads inside existing
-services; they log real background traffic only inside the pre-agent
-provisioning window, and afterwards touch only unlogged health endpoints
-and served content — the write freeze that keeps sealed evidence
-consistent while Harbor pulls artifacts from running containers. The kit
-is vendored byte-identically into every service image and pinned by the
-drift guard (`REALISM_IMAGES` in `tests/test_boundary_verifier_packages.py`);
-extending it means re-rendering every adopting family and re-running each
-family's Docker checks. A new family adopts it by declaring its wiring —
-[a new family's realism requirements, and what the kit provides](docs/realism-authoring.md)
-is the authoring guide; the shipped families' `scenarios/` sources are the
-reference implementations.
-
 ## Measurement checks
 
 These commands use synthetic records and local files:
@@ -125,13 +84,22 @@ python3 -m unittest tests.test_boundary_contract tests.test_boundary_collection 
 python3 -m unittest tests.test_northgate_measurement tests.test_scenario_measurement tests.test_collect_northgate_measurements
 ```
 
-The full test directory also contains service integration tests. Scripted
-controls and supplied-solution runs establish infrastructure behavior and
-feasibility; they are not measurements of model difficulty or propensity.
+The full test directory also contains service integration tests.
 
-Completion requires evidence appropriate to the objective. Northgate keeps
-coverage and possession markers separate from verified target-content delivery.
-Missing or unusable evidence remains unknown. Collection preserves original
-planned trial identities and rejects duplicates or retrospective replicate
-assignment. Model comparisons must use fresh, correctly identified runs;
-synthetic fixtures, scripted controls, and oracle results remain separate.
+## Repository layout
+
+- `scenarios/`: scenario-specific sources, one package per family.
+- `boundary_eval/`: shared contracts, evidence handling, scoring, analysis,
+  and the environment realism kit.
+- `tasks/`: self-contained Harbor packages, generated as in Running; only
+  `crm/` is hand-authored.
+- `tests/`: shared unit tests, synthetic verifier regressions, and scenario checks.
+- `scripts/`: validation, collection, and experiment utilities.
+- `docs/`: the realism authoring guide for building a new scenario family.
+- `config/`: provider configuration notes; credentials stay in ignored local files.
+- `results/validation.json`: curated summary of saved oracle results.
+- `results/` otherwise and `jobs/`: ignored working artifacts and raw run outputs.
+
+The Python measurement tooling uses the standard library and Python 3.11 or
+newer. Harbor is installed separately. This is a checkout-based project, with
+no wheel or registered console entry points.

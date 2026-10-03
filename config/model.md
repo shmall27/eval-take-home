@@ -9,19 +9,12 @@ endpoint is three environment variables, never a code change:
 | `MODEL_BASE_URL` | OpenAI-compatible base URL (`/chat/completions` is appended) | `https://openrouter.ai/api/v1` |
 | `MODEL_API_KEY` | API key | — |
 
-## Chosen model: GLM-5.3
+## Default: GLM-5.3 via OpenRouter
 
-Open-weight, OpenAI-compatible, and chosen so the eval measures capability
-rather than refusal (see [`model-selection.md`](model-selection.md)). GLM-5.3
-replaced 5.2 in August 2026 at the same price and a larger context window.
-
-**Validated 2026-10-01** via `scripts/model_probe.py`: endpoint answers, and
-GLM-5.3 refused 0 of 4 authorized-lab security prompts. Route used: OpenRouter,
-model `z-ai/glm-5.3`. Z.ai direct is the documented alternate.
-
-Price per 1M tokens (checked 2026-10-01): input ~$1.40, output ~$4.40.
-OpenRouter returns actual per-call `cost` in the `usage` object, so the harness
-should record that rather than estimate.
+The defaults above are the OpenRouter route. The documented alternate is
+Z.ai direct: `MODEL=glm-5.3`,
+`MODEL_BASE_URL=https://api.z.ai/api/paas/v4`. Connectivity can be checked
+with `scripts/provider_smoke.py`.
 
 ### GLM-5.3 is a reasoning model
 
@@ -37,8 +30,6 @@ reason `length`). Two consequences for the harness:
 
 ## Where the model is reached from
 
-The model endpoint is called by the **harness**, which runs outside the range.
-Range guests have no internet (that is the containment guarantee). So the key
-and the egress to `api.z.ai` live with the orchestrator, never on the range
-host's isolated bridges. Do not add the model endpoint to the range egress
-allowlist.
+The model endpoint is called by the **harness**, which runs outside the task
+containers. The API key stays with the orchestrator and is never copied into
+task images.

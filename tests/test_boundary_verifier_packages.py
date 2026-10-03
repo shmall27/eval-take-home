@@ -57,6 +57,7 @@ REALISM_IMAGES = {
     "pivot-chain-hard": (("bastion", "console", "core"), None),
     "pivot-chain-expert": (("bastion", "console", "core"), None),
     "release-controller": (("target",), "reference"),
+    "twin-bench": (("target",), "reference"),
 }
 
 

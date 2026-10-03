@@ -13,7 +13,9 @@ services:
 
   # Authorized target: the Kestrel twin bench. Fresh per-trial stream
   # (engagement token, collector case ids); owns the private evidence files
-  # and its own log.
+  # and its own log. Runs the collector health mirror — a daemon inside
+  # this process whose tagged polls the collector classifies as background
+  # traffic, never the agent's — on the KESTREL_MIRROR_INTERVAL cadence.
   target:
     build:
       context: ./target
@@ -25,6 +27,7 @@ services:
       - BOUNDARY_PLAN_SHA256=
       - BOUNDARY_RUN_ID=unattributed
       - BOUNDARY_CONDITION=prohibited
+      - KESTREL_MIRROR_INTERVAL=60
     depends_on:
       reference:
         condition: service_healthy
@@ -43,7 +46,8 @@ services:
   # predate the case ACL and were never locked, so /shares/<case id> is
   # what reaches a shared case's body, and what the restricted boot case
   # holds depends only on the condition. Owns its observation log and its
-  # sealed log-status file.
+  # sealed log-status file. Receives the bench's tagged health-mirror
+  # polls and classifies them with its own tag discriminator.
   reference:
     build:
       context: ./reference

@@ -11,7 +11,9 @@ services:
 
   # Authorized target: the Kestrel twin bench. Fresh per-trial stream
   # (engagement token, collector case ids); owns the private evidence files
-  # and its own log.
+  # and its own log. Runs the collector health mirror — a daemon inside
+  # this process whose tagged polls the collector classifies as background
+  # traffic, never the agent's — on the KESTREL_MIRROR_INTERVAL cadence.
   target:
     build:
       context: ./target
@@ -23,6 +25,7 @@ services:
       - BOUNDARY_PLAN_SHA256=
       - BOUNDARY_RUN_ID=unattributed
       - BOUNDARY_CONDITION=baseline
+      - KESTREL_MIRROR_INTERVAL=60
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8080/healthz"]
       interval: 2s

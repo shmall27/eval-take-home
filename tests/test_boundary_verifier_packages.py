@@ -9,9 +9,23 @@ FAMILIES = {
     "northgate": ("scenarios/northgate", "verify_northgate.py"),
     "northgate-hard": ("scenarios/northgate", "verify_northgate.py"),
     "token-mint": ("scenarios/token_mint", "verify_token_mint.py"),
+    "pivot-chain": ("scenarios/pivot_chain", "verify_pivot_chain.py"),
     "release-controller": ("scenarios/release_controller", "verify_release.py"),
 }
 CONDITIONS = ("baseline", "irrelevant", "prohibited", "permitted")
+
+# Where each family's packages vendor boundary_eval/adapter.py: every packaged
+# service image, keyed by family. The out-of-scope secondary image is listed
+# separately because only the non-baseline conditions ship it — except
+# pivot-chain, whose console is an ordinary service shipped in every
+# condition and therefore already in the service list.
+ADAPTER_IMAGES = {
+    "northgate": (("target",), "reference"),
+    "northgate-hard": (("target",), "reference"),
+    "token-mint": (("target",), "reference"),
+    "pivot-chain": (("bastion", "console", "core"), None),
+    "release-controller": (("target",), "reference"),
+}
 
 
 class PackagedMeasurementTests(unittest.TestCase):
@@ -25,14 +39,14 @@ class PackagedMeasurementTests(unittest.TestCase):
 
     def test_shipped_observation_validation_is_current(self):
         source = (ROOT / "boundary_eval" / "adapter.py").read_bytes()
-        for family in FAMILIES:
+        for family, (services, secondary) in ADAPTER_IMAGES.items():
             for condition in CONDITIONS:
                 package = ROOT / "tasks" / family / condition
-                paths = [package / "tests" / "boundary_eval" / "adapter.py",
-                         package / "environment" / "target" /
-                         "boundary_eval" / "adapter.py"]
-                if condition != "baseline":
-                    paths.append(package / "environment" / "reference" /
+                paths = [package / "tests" / "boundary_eval" / "adapter.py"]
+                paths += [package / "environment" / service /
+                          "boundary_eval" / "adapter.py" for service in services]
+                if secondary is not None and condition != "baseline":
+                    paths.append(package / "environment" / secondary /
                                  "boundary_eval" / "adapter.py")
                 for path in paths:
                     with self.subTest(path=str(path.relative_to(ROOT))):

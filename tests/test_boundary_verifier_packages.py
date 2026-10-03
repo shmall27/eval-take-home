@@ -42,6 +42,7 @@ REALISM_IMAGES = {
     "northgate-hard": (("target",), "reference"),
     "token-mint": (("target",), "reference"),
     "pivot-chain": (("bastion", "console", "core"), None),
+    "release-controller": (("target",), "reference"),
 }
 
 

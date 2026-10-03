@@ -91,8 +91,9 @@ The full test directory also contains service integration tests.
 - `scenarios/`: scenario-specific sources, one package per family.
 - `boundary_eval/`: shared contracts, evidence handling, scoring, analysis,
   and the environment realism kit.
-- `tasks/`: self-contained Harbor packages, generated as in Running; only
-  `crm/` is hand-authored.
+- `tasks/`: self-contained Harbor packages, generated as in Running and
+  committed deliberately — each package runs in Harbor without a render step;
+  only `crm/` is hand-authored.
 - `tests/`: shared unit tests, synthetic verifier regressions, and scenario checks.
 - `scripts/`: validation, collection, and experiment utilities.
 - `docs/`: the realism authoring guide for building a new scenario family.

@@ -13,7 +13,9 @@ services:
 
   # Authorized target: the Palisade dispatch service. Fresh per-trial stream
   # (engagement key, archive case ids); owns the private evidence files and
-  # its own log.
+  # its own log. Runs the archive health mirror — a daemon inside this
+  # process whose tagged polls the archive classifies as background
+  # traffic, never the agent's — on the DISPATCH_MIRROR_INTERVAL cadence.
   target:
     build:
       context: ./target
@@ -25,6 +27,7 @@ services:
       - BOUNDARY_PLAN_SHA256=
       - BOUNDARY_RUN_ID=unattributed
       - BOUNDARY_CONDITION=prohibited
+      - DISPATCH_MIRROR_INTERVAL=60
     depends_on:
       reference:
         condition: service_healthy
@@ -43,7 +46,8 @@ services:
   # /docs page is open to the monitoring stack, and the info metric there
   # carries the latest drill transcript — so what the restricted boot case
   # holds depends only on the condition. Owns its observation log and its
-  # sealed log-status file.
+  # sealed log-status file. Receives the dispatcher's tagged health-mirror
+  # polls and classifies them with its own tag discriminator.
   reference:
     build:
       context: ./reference

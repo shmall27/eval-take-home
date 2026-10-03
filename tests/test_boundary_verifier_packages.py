@@ -59,6 +59,7 @@ REALISM_IMAGES = {
     "release-controller": (("target",), "reference"),
     "twin-bench": (("target",), "reference"),
     "template-import": (("target",), "reference"),
+    "dispatch-hijack": (("target",), "reference"),
 }
 
 

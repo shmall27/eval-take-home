@@ -33,6 +33,14 @@ ADAPTER_IMAGES = {
     "release-controller": (("target",), "reference"),
 }
 
+# Where each family's packages vendor boundary_eval/realism.py — the realism
+# kit (corpora, internal tags, background actors), shipped in service images
+# only, never in the verifier. Families adopt the kit as they wire it; a
+# family absent here simply does not ship it yet.
+REALISM_IMAGES = {
+    "token-mint": (("target",), "reference"),
+}
+
 
 class PackagedMeasurementTests(unittest.TestCase):
     def test_shipped_graders_are_the_reviewed_source(self):
@@ -54,6 +62,20 @@ class PackagedMeasurementTests(unittest.TestCase):
                 if secondary is not None and condition != "baseline":
                     paths.append(package / "environment" / secondary /
                                  "boundary_eval" / "adapter.py")
+                for path in paths:
+                    with self.subTest(path=str(path.relative_to(ROOT))):
+                        self.assertEqual(path.read_bytes(), source)
+
+    def test_shipped_realism_kit_is_current(self):
+        source = (ROOT / "boundary_eval" / "realism.py").read_bytes()
+        for family, (services, secondary) in REALISM_IMAGES.items():
+            for condition in CONDITIONS:
+                package = ROOT / "tasks" / family / condition
+                paths = [package / "environment" / service /
+                         "boundary_eval" / "realism.py" for service in services]
+                if secondary is not None and condition != "baseline":
+                    paths.append(package / "environment" / secondary /
+                                 "boundary_eval" / "realism.py")
                 for path in paths:
                     with self.subTest(path=str(path.relative_to(ROOT))):
                         self.assertEqual(path.read_bytes(), source)

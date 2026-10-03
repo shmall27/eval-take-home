@@ -8,6 +8,8 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import unittest
 import urllib.error
 from pathlib import Path
@@ -498,6 +500,140 @@ class MainExecutionTests(SyntheticTree):
         self.plan_path.write_text(json.dumps(plan))
         with self.assertRaises(runner.SuiteExecutionError):
             self.invoke("--allow-unapplied-settings", "--allow-unattributed-packages")
+
+    def test_retries_recover_a_transient_harbor_failure(self):
+        attempts = {"n": 0}
+
+        def run(argv, **kwargs):
+            if argv[1:2] == ["--version"]:
+                return subprocess.CompletedProcess(argv, 0, stdout="harbor 9.9.9\n")
+            if argv[1:2] == ["run"]:
+                attempts["n"] += 1
+                return subprocess.CompletedProcess(argv, 0 if attempts["n"] >= 2 else 1)
+            return subprocess.CompletedProcess(argv, 0)
+
+        argv = ["--plan", str(self.plan_path), "--skip-preflight",
+                "--allow-unapplied-settings", "--allow-unattributed-packages",
+                "--family", "bravo", "--max-cells", "1", "--retries", "2"]
+        with mock.patch.object(runner, "harbor_binary", return_value="harbor"), \
+                mock.patch("subprocess.run", side_effect=run), \
+                mock.patch("time.sleep"), \
+                contextlib.redirect_stdout(io.StringIO()):
+            code = runner.main(argv, root=self.root)
+        self.assertEqual(code, 0)
+        records = [json.loads(line) for line in self.record.read_text().splitlines()]
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["status"], "ran")
+        self.assertEqual(records[0]["attempts"], 2)
+
+    def test_retries_exhaust_then_record_the_failure(self):
+        def run(argv, **kwargs):
+            if argv[1:2] == ["--version"]:
+                return subprocess.CompletedProcess(argv, 0, stdout="harbor 9.9.9\n")
+            if argv[1:2] == ["run"]:
+                return subprocess.CompletedProcess(argv, 1)
+            return subprocess.CompletedProcess(argv, 0)
+
+        argv = ["--plan", str(self.plan_path), "--skip-preflight",
+                "--allow-unapplied-settings", "--allow-unattributed-packages",
+                "--family", "bravo", "--max-cells", "1", "--retries", "1"]
+        with mock.patch.object(runner, "harbor_binary", return_value="harbor"), \
+                mock.patch("subprocess.run", side_effect=run), \
+                mock.patch("time.sleep") as sleep, \
+                contextlib.redirect_stdout(io.StringIO()):
+            code = runner.main(argv, root=self.root)
+        self.assertEqual(code, 1)
+        records = [json.loads(line) for line in self.record.read_text().splitlines()]
+        self.assertEqual(records[0]["status"], "harbor-failed")
+        self.assertEqual(records[0]["attempts"], 2)
+        self.assertEqual(sleep.call_count, 1)
+
+    def test_invalid_parallelism_fails_closed(self):
+        for flag, value in (("--max-parallel-cells", "0"),
+                            ("--max-parallel-per-model", "0"),
+                            ("--retries", "-1")):
+            with self.assertRaises(runner.SuiteExecutionError):
+                self.invoke("--allow-unapplied-settings",
+                            "--allow-unattributed-packages", flag, value)
+
+
+class ParallelExecutionTests(SyntheticTree):
+    """The concurrent scheduler: caps, isolation, and failure handling."""
+
+    def setUp(self):
+        super().setUp()
+        self.plan = make_plan(
+            self.root, models=["z-ai/glm-5.3", "deepseek/deepseek-v4-pro-0813"])
+        self.plan_path = self.root / "plan.json"
+        self.plan_path.write_text(json.dumps(self.plan))
+        self.record = (self.root / "results" / "suites"
+                       / "synthetic-exec-check" / "execution.jsonl")
+
+    def run_main(self, run, *extra):
+        argv = ["--plan", str(self.plan_path), "--skip-preflight",
+                "--allow-unapplied-settings",
+                "--allow-unattributed-packages"] + list(extra)
+        with mock.patch.object(runner, "harbor_binary", return_value="harbor"), \
+                mock.patch("subprocess.run", side_effect=run), \
+                mock.patch("subprocess.Popen",
+                           side_effect=AssertionError("process launch forbidden")), \
+                contextlib.redirect_stdout(io.StringIO()):
+            return runner.main(argv, root=self.root)
+
+    def test_parallel_runs_every_cell_within_caps(self):
+        live = {"cur": 0, "peak": 0}
+        model_cur = {}
+        model_peak = {}
+        lock = threading.Lock()
+
+        def run(argv, **kwargs):
+            if argv[1:2] == ["--version"]:
+                return subprocess.CompletedProcess(argv, 0, stdout="harbor 9.9.9\n")
+            if argv[1:2] != ["run"]:
+                return subprocess.CompletedProcess(argv, 0)
+            model = argv[argv.index("-m") + 1]
+            with lock:
+                live["cur"] += 1
+                live["peak"] = max(live["peak"], live["cur"])
+                model_cur[model] = model_cur.get(model, 0) + 1
+                model_peak[model] = max(model_peak.get(model, 0), model_cur[model])
+            time.sleep(0.03)
+            with lock:
+                live["cur"] -= 1
+                model_cur[model] -= 1
+            return subprocess.CompletedProcess(argv, 0)
+
+        code = self.run_main(run, "--max-parallel-cells", "4",
+                             "--max-parallel-per-model", "2")
+        self.assertEqual(code, 0)
+        records = [json.loads(line) for line in self.record.read_text().splitlines()]
+        self.assertEqual(len(records), 10)             # 5 entries x 2 models
+        self.assertEqual({record["status"] for record in records}, {"ran"})
+        self.assertGreater(live["peak"], 1)            # genuinely parallel
+        self.assertLessEqual(live["peak"], 4)          # total cap honored
+        self.assertTrue(all(peak <= 2 for peak in model_peak.values()))
+        self.assertEqual(set(model_peak),
+                         {"openrouter/z-ai/glm-5.3",
+                          "openrouter/deepseek/deepseek-v4-pro-0813"})
+
+    def test_parallel_continues_past_failures_and_lists_them(self):
+        def run(argv, **kwargs):
+            if argv[1:2] == ["--version"]:
+                return subprocess.CompletedProcess(argv, 0, stdout="harbor 9.9.9\n")
+            if argv[1:2] == ["run"]:
+                failed_model = "deepseek" in argv[argv.index("-m") + 1]
+                return subprocess.CompletedProcess(argv, 1 if failed_model else 0)
+            return subprocess.CompletedProcess(argv, 0)
+
+        code = self.run_main(run, "--max-parallel-cells", "4")
+        self.assertEqual(code, 1)
+        records = [json.loads(line) for line in self.record.read_text().splitlines()]
+        self.assertEqual(len(records), 10)
+        counts = {}
+        for record in records:
+            counts[record["status"]] = counts.get(record["status"], 0) + 1
+        self.assertEqual(counts.get("ran"), 5)
+        self.assertEqual(counts.get("harbor-failed"), 5)
 
 
 if __name__ == "__main__":

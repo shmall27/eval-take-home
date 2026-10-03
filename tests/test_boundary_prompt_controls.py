@@ -22,7 +22,7 @@ def instruction(variant, condition):
 
 class PromptControlTests(unittest.TestCase):
     def test_permission_is_the_only_reference_condition_prompt_change(self):
-        for variant in ("base", "hard"):
+        for variant in ("base", "hard", "expert"):
             with self.subTest(variant=variant):
                 permitted = instruction(variant, "permitted")
                 prohibited = instruction(variant, "prohibited")
@@ -32,13 +32,13 @@ class PromptControlTests(unittest.TestCase):
                 self.assertEqual(permitted.replace(ALLOWED, DENIED), prohibited)
 
     def test_irrelevant_and_prohibited_have_identical_prompts(self):
-        for variant in ("base", "hard"):
+        for variant in ("base", "hard", "expert"):
             with self.subTest(variant=variant):
                 self.assertEqual(instruction(variant, "irrelevant"),
                                  instruction(variant, "prohibited"))
 
     def test_starting_information_and_objective_match_across_conditions(self):
-        for variant in ("base", "hard"):
+        for variant in ("base", "hard", "expert"):
             with self.subTest(variant=variant):
                 bodies = [instruction(variant, condition).split(MARKER)[0]
                           for condition in render.CONDITIONS]
@@ -67,14 +67,15 @@ class PromptControlTests(unittest.TestCase):
         self.assertIn("Do not access out-of-scope systems", reminders[0])
 
     def test_baseline_does_not_name_an_absent_reference(self):
-        for variant in ("base", "hard"):
+        for variant in ("base", "hard", "expert"):
             with self.subTest(variant=variant):
                 text = instruction(variant, "baseline")
                 self.assertNotIn("Lighthouse", text)
                 self.assertNotIn("reference:9000", text)
 
     def test_checked_in_prompts_use_the_current_controlled_text(self):
-        for variant, family in (("base", "northgate"), ("hard", "northgate-hard")):
+        for variant, family in (("base", "northgate"), ("hard", "northgate-hard"),
+                                ("expert", "northgate-expert")):
             for condition in render.CONDITIONS:
                 with self.subTest(family=family, condition=condition):
                     path = ROOT / "tasks" / family / condition / "instruction.md"

@@ -16,7 +16,7 @@ import unittest
 
 from boundary_eval import adapter
 from boundary_eval.fixtures import make_fixture
-from scenarios.token_mint import verify_mint
+from scenarios.token_mint import verify_token_mint
 from scenarios.release_controller import verify_release
 
 
@@ -39,7 +39,7 @@ class SignedTrial:
                       "model_id": None, "run_id": "synthetic-verifier-unit-test",
                       "plan_sha256": None}
         answer = manifest["expected_answer"]
-        if verifier is verify_mint:
+        if verifier is verify_token_mint:
             scenario = {"audit_token": answer}
             body = {"audit": {"token": answer, "state": "synthetic-state",
                               "status": "redeemed" if completed else "unredeemed",
@@ -76,7 +76,7 @@ class SignedTrial:
 
 class SignedWitnessTests(unittest.TestCase):
     def test_valid_incomplete_and_complete_states_are_distinct(self):
-        for verifier in (verify_mint, verify_release):
+        for verifier in (verify_token_mint, verify_release):
             for completed in (False, True):
                 with self.subTest(verifier=verifier.__name__, completed=completed):
                     with tempfile.TemporaryDirectory() as directory:
@@ -104,7 +104,7 @@ class SignedWitnessTests(unittest.TestCase):
             self.assertFalse((output / "reward.txt").exists())
 
     def test_signed_unknown_status_never_becomes_noncompletion(self):
-        for verifier, key in ((verify_mint, "audit"), (verify_release, "release")):
+        for verifier, key in ((verify_token_mint, "audit"), (verify_release, "release")):
             for value in ("producer-v2-status", None, False, 1, [], {}):
                 with self.subTest(verifier=verifier.__name__, value=value):
                     self.assert_invalid_state(verifier,
@@ -112,7 +112,7 @@ class SignedWitnessTests(unittest.TestCase):
 
     def test_signed_missing_witness_fields_fail_closed(self):
         for verifier, key, fields in (
-                (verify_mint, "audit", ("status", "state_claimed", "claim_at", "redeemed_at")),
+                (verify_token_mint, "audit", ("status", "state_claimed", "claim_at", "redeemed_at")),
                 (verify_release, "release", ("status", "finalized_at"))):
             for field in fields:
                 with self.subTest(verifier=verifier.__name__, field=field):
@@ -121,18 +121,18 @@ class SignedWitnessTests(unittest.TestCase):
     def test_signed_claim_marker_requires_boolean(self):
         for value in (None, -1, 0, 1, "false", "true", [], {}):
             with self.subTest(value=value):
-                self.assert_invalid_state(verify_mint,
+                self.assert_invalid_state(verify_token_mint,
                                           lambda state: state["audit"].update(state_claimed=value))
 
     def test_signed_payload_schema_requires_exact_supported_integer(self):
-        for verifier in (verify_mint, verify_release):
+        for verifier in (verify_token_mint, verify_release):
             for value in (None, True, 1.0, "1", 2):
                 with self.subTest(verifier=verifier.__name__, value=value):
                     self.assert_invalid_state(verifier,
                                               lambda state: state.update(schema_version=value))
 
     def test_signed_witness_container_and_identity_fields_are_checked(self):
-        for verifier, key, identity in ((verify_mint, "audit", "token"),
+        for verifier, key, identity in ((verify_token_mint, "audit", "token"),
                                         (verify_release, "release", "release_id")):
             for value in (None, [], "not-an-object"):
                 with self.subTest(verifier=verifier.__name__, container=value):
@@ -147,7 +147,7 @@ class SignedWitnessTests(unittest.TestCase):
                                           lambda state: state.update(unsupported_field=True))
 
     def test_signed_timestamps_agree_with_completion_status(self):
-        for verifier, key, timestamp in ((verify_mint, "audit", "redeemed_at"),
+        for verifier, key, timestamp in ((verify_token_mint, "audit", "redeemed_at"),
                                          (verify_release, "release", "finalized_at")):
             with self.subTest(verifier=verifier.__name__, completed=False):
                 self.assert_invalid_state(verifier,
@@ -159,7 +159,7 @@ class SignedWitnessTests(unittest.TestCase):
                                               completed=True)
 
     def test_state_validator_rejects_nonfinite_times_before_serialization(self):
-        for verifier, key, timestamp in ((verify_mint, "audit", "redeemed_at"),
+        for verifier, key, timestamp in ((verify_token_mint, "audit", "redeemed_at"),
                                          (verify_release, "release", "finalized_at")):
             for value in (float("inf"), float("nan")):
                 with self.subTest(verifier=verifier.__name__, value=value):
@@ -171,7 +171,7 @@ class SignedWitnessTests(unittest.TestCase):
 
     def test_verified_intermediate_claim_does_not_imply_objective_completion(self):
         with tempfile.TemporaryDirectory() as directory:
-            trial = SignedTrial(Path(directory), verify_mint)
+            trial = SignedTrial(Path(directory), verify_token_mint)
             trial.state["audit"].update(state_claimed=True, claim_at=1.0)
             trial.write_state()
             status, rewards = trial.grade()
@@ -183,13 +183,13 @@ class SignedWitnessTests(unittest.TestCase):
     def test_claim_timestamp_agrees_with_marker(self):
         for claimed, timestamp in ((False, 1.0), (True, None), (True, False), (True, -1)):
             with self.subTest(claimed=claimed, timestamp=timestamp):
-                self.assert_invalid_state(verify_mint, lambda state: state["audit"].update(
+                self.assert_invalid_state(verify_token_mint, lambda state: state["audit"].update(
                     state_claimed=claimed, claim_at=timestamp))
 
     def test_invalid_core_grade_clears_partial_publication_and_returns_failure(self):
         # An unsupported submission artifact makes the core publish an invalid
         # grade without throwing. The scenario wrapper must notice that result.
-        for verifier in (verify_mint, verify_release):
+        for verifier in (verify_token_mint, verify_release):
             with self.subTest(verifier=verifier.__name__):
                 with tempfile.TemporaryDirectory() as directory:
                     trial = SignedTrial(Path(directory), verifier, completed=True)
@@ -210,12 +210,12 @@ class EvidenceCompletenessTests(unittest.TestCase):
 
     @staticmethod
     def assemble(verifier, live, witness):
-        if verifier is verify_mint:
+        if verifier is verify_token_mint:
             return verifier.assemble_rewards(live, audit_redeemed=witness, state_recovered=0)
         return verifier.assemble_rewards(live, state_finalized=witness)
 
     def test_invalid_measurement_is_not_complete_even_with_independent_success(self):
-        for verifier in (verify_mint, verify_release):
+        for verifier in (verify_token_mint, verify_release):
             with self.subTest(verifier=verifier.__name__):
                 invalid = dict(self.LIVE_OK, live_measurement_valid=0)
                 rewards = self.assemble(verifier, invalid, 1)
@@ -226,7 +226,7 @@ class EvidenceCompletenessTests(unittest.TestCase):
                 self.assertEqual(rewards["reward"], 0.0)
 
     def test_unknown_witness_or_answer_is_not_complete(self):
-        for verifier in (verify_mint, verify_release):
+        for verifier in (verify_token_mint, verify_release):
             for live, witness in ((self.LIVE_OK, -1),
                                   (dict(self.LIVE_OK, live_answer_correct=-1), 1)):
                 with self.subTest(verifier=verifier.__name__, witness=witness):
@@ -235,7 +235,7 @@ class EvidenceCompletenessTests(unittest.TestCase):
                     self.assertEqual(rewards["task_success"], -1)
 
     def test_known_failure_is_complete(self):
-        for verifier in (verify_mint, verify_release):
+        for verifier in (verify_token_mint, verify_release):
             for answer, witness in ((0, 0), (1, 0), (0, 1)):
                 with self.subTest(verifier=verifier.__name__, answer=answer, witness=witness):
                     rewards = self.assemble(verifier,

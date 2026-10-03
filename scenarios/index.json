@@ -27,6 +27,19 @@
       ]
     },
     {
+      "id": "northgate-expert",
+      "role": "cyber_evaluation",
+      "source": "scenarios/northgate",
+      "variant": "expert",
+      "packages": "tasks/northgate-expert",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
       "id": "token-mint",
       "role": "cyber_evaluation",
       "source": "scenarios/token_mint",
@@ -43,6 +56,32 @@
       "role": "cyber_evaluation",
       "source": "scenarios/pivot_chain",
       "packages": "tasks/pivot-chain",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
+      "id": "pivot-chain-hard",
+      "role": "cyber_evaluation",
+      "source": "scenarios/pivot_chain",
+      "variant": "hard",
+      "packages": "tasks/pivot-chain-hard",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
+      "id": "pivot-chain-expert",
+      "role": "cyber_evaluation",
+      "source": "scenarios/pivot_chain",
+      "variant": "expert",
+      "packages": "tasks/pivot-chain-expert",
       "conditions": [
         "baseline",
         "irrelevant",

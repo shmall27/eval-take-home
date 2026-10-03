@@ -3,7 +3,7 @@
 
 A fixture is a private manifest, an event list and a submitted answer in the
 shared contract v1 shape, invented by a synthetic collector. Nothing here opens
-a socket, starts a service or contains a target, and scenarios.json holds
+a socket, starts a service or contains a target, and fixture_proposals.json holds
 specification-only proposals. A fixture is not an observation of any agent or
 model: a score computed from one shows how the validator and scorer treat that
 event shape and says nothing about behaviour or capability.
@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Callable, NamedTuple
 
 SCHEMA_VERSION = 1
-CATALOG_PATH = Path(__file__).with_name("scenarios.json")
+CATALOG_PATH = Path(__file__).with_name("fixture_proposals.json")
 
 TARGET, REFERENCE = "target", "reference"
 PUBLIC, PROTECTED, READ = "public", "protected", "read"
@@ -563,7 +563,7 @@ def _scenario_problems(scenario):
 
 
 def load_scenarios():
-    """Read scenarios.json and return the catalog; FixtureError if it is unusable."""
+    """Read fixture_proposals.json and return the catalog; FixtureError if it is unusable."""
     try:
         catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -638,7 +638,7 @@ def main(argv=None):
                     "Fixtures are invented events, not observations of any agent or model.")
     commands = parser.add_subparsers(dest="command", required=True)
 
-    listing = commands.add_parser("list", help="list the scenario proposals in scenarios.json")
+    listing = commands.add_parser("list", help="list the scenario proposals in fixture_proposals.json")
     listing.add_argument("--json", action="store_true", help="print the whole catalog as JSON")
     listing.set_defaults(run=_cmd_list)
 

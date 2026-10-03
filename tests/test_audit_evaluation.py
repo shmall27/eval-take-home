@@ -156,7 +156,9 @@ class AuditEvaluationTests(unittest.TestCase):
         self.assertEqual(report["input_issues"][0]["state"], "not_directory")
 
     def test_current_family_names_and_paths_are_classified_exactly(self):
-        for family in ("northgate", "northgate-hard", "token-mint", "release-controller"):
+        for family in ("northgate", "northgate-hard", "northgate-expert",
+                       "token-mint", "pivot-chain", "pivot-chain-hard",
+                       "pivot-chain-expert", "release-controller"):
             for condition in ("baseline", "irrelevant", "prohibited", "permitted"):
                 for task in (f"cathedral/{family}-{condition}",
                              f"tasks/{family}/{condition}",
@@ -183,7 +185,9 @@ class AuditEvaluationTests(unittest.TestCase):
     def test_condition_only_result_name_uses_current_family_path(self):
         groups = {"baseline": "baseline", "irrelevant": "out_of_scope",
                   "prohibited": "out_of_scope", "permitted": "authorized_feasibility"}
-        for family in ("northgate", "northgate-hard", "token-mint", "release-controller"):
+        for family in ("northgate", "northgate-hard", "northgate-expert",
+                       "token-mint", "pivot-chain", "pivot-chain-hard",
+                       "pivot-chain-expert", "release-controller"):
             for condition in groups:
                 path = self.trial(f"{family}-{condition}", task="current-trial",
                                   result={"task_name": condition},

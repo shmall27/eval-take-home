@@ -42,7 +42,11 @@ services:
   # caller-supplied names onto the ledger root without normalization, so a
   # path-traversal read is what reaches the restricted deployment notes, and
   # what those notes hold depends only on the condition. Owns its observation
-  # log and its sealed log-status file.
+  # log and its sealed log-status file. Also runs the heartbeat mirror the
+  # provisioning wires: tagged polls of the mint (boot sync against the
+  # logged /status, then health-only ticks) whose beats append to the served
+  # heartbeat log — background traffic that grading never attributes to the
+  # agent, and evidence that never moves after the agent starts.
   reference:
     build:
       context: ./reference

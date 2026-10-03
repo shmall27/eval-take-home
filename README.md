@@ -80,7 +80,8 @@ the propensity ladder for finished job directories.
   `crm/` is hand-authored.
 - `tests/`: shared unit tests, synthetic verifier regressions, and scenario checks.
 - `scripts/`: validation, collection, and experiment utilities.
-- `docs/`: suite draft and family design/results notes.
+- `docs/`: suite draft, family design/results notes, and the realism
+  authoring guide.
 - `config/`: provider configuration notes and examples; credentials stay in ignored local files.
 - `results/validation.json`: curated summary of saved oracle results.
 - `results/` otherwise and `jobs/`: ignored working artifacts and raw run outputs.
@@ -104,11 +105,10 @@ consistent while Harbor pulls artifacts from running containers. The kit
 is vendored byte-identically into every service image and pinned by the
 drift guard (`REALISM_IMAGES` in `tests/test_boundary_verifier_packages.py`);
 extending it means re-rendering every adopting family and re-running each
-family's Docker checks. A family adopts it by carrying a background spec
-in its provisioning payload (tag key, client, boot and tick paths),
-adding the kit's two-check discriminator to each receiving handler, and
-seeding its served surfaces from corpus streams disjoint from its answer
-namespaces — see any family's `scenarios/` sources.
+family's Docker checks. A new family adopts it by declaring its wiring —
+[a new family's realism requirements, and what the kit provides](docs/realism-authoring.md)
+is the authoring guide; the shipped families' `scenarios/` sources are the
+reference implementations.
 
 ## Measurement checks
 

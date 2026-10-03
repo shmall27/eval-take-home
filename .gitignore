@@ -18,6 +18,12 @@ __pycache__/
 # eval output
 logs/
 runs/
+/tmp/
+
+# Generated PDF deliverables under output/pdf stay tracked; other build
+# output does not.
+/output/*
+!/output/pdf/
 
 # os / editor
 .DS_Store

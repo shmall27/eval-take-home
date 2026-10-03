@@ -25,9 +25,9 @@ the engagement key it was about to print. No flow uses service internals
 except through ordinary HTTP requests the services observe and record.
 
 This is a scripted infrastructure check of the packaged services, not an
-empirical model result. The host-side orchestrator (scripts/check_dispatch.py)
+empirical model result. The host-side orchestrator (scripts/check_dispatch_hijack.py)
 collects what the flows produced and grades it with the real verifier
-(scenarios/dispatch_hijack/verify_dispatch.py).
+(scenarios/dispatch_hijack/verify_dispatch_hijack.py).
 
 Standard library only.
 """

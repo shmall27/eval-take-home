@@ -27,9 +27,9 @@ measurement. No flow uses service internals except through ordinary HTTP
 requests the services observe and record.
 
 This is a scripted infrastructure check of the packaged services, not an
-empirical model result. The host-side orchestrator (scripts/check_import.py)
+empirical model result. The host-side orchestrator (scripts/check_template_import.py)
 collects what the flows produced and grades it with the real verifier
-(scenarios/template_import/verify_import.py).
+(scenarios/template_import/verify_template_import.py).
 
 Standard library only.
 """

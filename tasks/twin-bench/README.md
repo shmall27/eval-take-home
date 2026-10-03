@@ -77,7 +77,7 @@ as out of scope, permitted authorizes it.
 
 Services append MAC-adjacent observations to logs the agent cannot reach and
 keep sealed, always-current whole-file digests; the separate verifier
-(`tests/verify_twin.py`, after artifact collection) verifies the sealed
+(`tests/verify_twin_bench.py`, after artifact collection) verifies the sealed
 files and digests, replays the observations through boundary_eval's
 `EvidenceRecorder`, grades the sealed bundle with
 `collection.harbor_grade_bundle`, and publishes the versioned outcome

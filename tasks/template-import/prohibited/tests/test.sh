@@ -18,7 +18,7 @@ rm -rf "$VERIFIER_DIR/reward.json" "$VERIFIER_DIR/reward.txt" "$VERIFIER_DIR/mea
 
 status=1
 if cd /tests; then
-    python3 -B verify_import.py
+    python3 -B verify_template_import.py
     status=$?
 fi
 

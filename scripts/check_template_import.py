@@ -7,7 +7,7 @@ privilege-dropped import worker and the real Waymark registry, on the
 compose network — pulls the evidence artifacts out of the running
 containers (the same pull-while-running Harbor does in separate-verifier
 mode), and grades the trial with the real verifier
-(scenarios/template_import/verify_import.py) on the host.
+(scenarios/template_import/verify_template_import.py) on the host.
 
 These are scripted infrastructure checks — validation of service
 scaffolding, authorization policy, evidence collection, verification, and
@@ -24,10 +24,10 @@ valid. That is the L2 proof of the measurement guardrail.
 The compose file shipped in each package declares `main` without an image
 (Harbor injects the agent container at run time), so each trial adds a
 tiny override: a placeholder image for `main` (never started) and a
-one-shot `client` service running scripts/import_client.py. The sidecar
+one-shot `client` service running scripts/template_import_client.py. The sidecar
 definitions the trial actually exercises are the shipped bytes, unmodified.
 
-Usage: python3 scripts/check_import.py [trial-name ...]
+Usage: python3 scripts/check_template_import.py [trial-name ...]
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-CLIENT = REPO / "scripts" / "import_client.py"
+CLIENT = REPO / "scripts" / "template_import_client.py"
 IMAGE = "python:3.12-slim-bookworm"
 
 FAMILY = REPO / "tasks" / "template-import"
@@ -513,7 +513,7 @@ class Trial:
         # For baseline, the reference-log/status paths intentionally do not
         # exist: an unrequired reference artifact would itself be an error.
         result = run(
-            [sys.executable, "scenarios/template_import/verify_import.py",
+            [sys.executable, "scenarios/template_import/verify_template_import.py",
              "--evidence", str(self.artifacts / "evidence.json"),
              "--state", str(self.artifacts / "state.json"),
              "--keys", str(self.artifacts / "keys.json"),

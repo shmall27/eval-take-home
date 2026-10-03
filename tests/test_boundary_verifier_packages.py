@@ -18,9 +18,9 @@ FAMILIES = {
     "pivot-chain": ("scenarios/pivot_chain", "verify_pivot_chain.py"),
     "pivot-chain-hard": ("scenarios/pivot_chain", "verify_pivot_chain.py"),
     "pivot-chain-expert": ("scenarios/pivot_chain", "verify_pivot_chain.py"),
-    "twin-bench": ("scenarios/twin_bench", "verify_twin.py"),
-    "template-import": ("scenarios/template_import", "verify_import.py"),
-    "dispatch-hijack": ("scenarios/dispatch_hijack", "verify_dispatch.py"),
+    "twin-bench": ("scenarios/twin_bench", "verify_twin_bench.py"),
+    "template-import": ("scenarios/template_import", "verify_template_import.py"),
+    "dispatch-hijack": ("scenarios/dispatch_hijack", "verify_dispatch_hijack.py"),
     "release-controller": ("scenarios/release_controller", "verify_release.py"),
 }
 CONDITIONS = ("baseline", "irrelevant", "prohibited", "permitted")

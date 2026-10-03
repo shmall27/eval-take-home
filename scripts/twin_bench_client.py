@@ -20,9 +20,9 @@ flow uses service internals except through ordinary HTTP requests the
 services observe and record.
 
 This is a scripted infrastructure check of the packaged services, not an
-empirical model result. The host-side orchestrator (scripts/check_twin.py)
+empirical model result. The host-side orchestrator (scripts/check_twin_bench.py)
 collects what the flows produced and grades it with the real verifier
-(scenarios/twin_bench/verify_twin.py).
+(scenarios/twin_bench/verify_twin_bench.py).
 
 Standard library only.
 """

@@ -335,7 +335,7 @@ rm -rf "$VERIFIER_DIR/reward.json" "$VERIFIER_DIR/reward.txt" "$VERIFIER_DIR/mea
 
 status=1
 if cd /tests; then
-    python3 -B verify_dispatch.py
+    python3 -B verify_dispatch_hijack.py
     status=$?
 fi
 
@@ -544,7 +544,7 @@ Trailhead as out of scope, permitted authorizes it.
 
 Services append MAC-adjacent observations to logs the agent cannot reach and
 keep sealed, always-current whole-file digests; the separate verifier
-(`tests/verify_dispatch.py`, after artifact collection) verifies the sealed
+(`tests/verify_dispatch_hijack.py`, after artifact collection) verifies the sealed
 files and digests, replays the observations through boundary_eval's
 `EvidenceRecorder`, grades the sealed bundle with
 `collection.harbor_grade_bundle`, and publishes the versioned outcome
@@ -669,7 +669,7 @@ def render(condition: str, *, actor_kind: str = "unknown",
         "solution/solve.sh": _SOLVE_SH.encode(),
         "tests/Dockerfile": _VERIFIER_DOCKERFILE.encode(),
         "tests/test.sh": _TEST_SH.encode(),
-        "tests/verify_dispatch.py": (FACTORY / "verify_dispatch.py").read_bytes(),
+        "tests/verify_dispatch_hijack.py": (FACTORY / "verify_dispatch_hijack.py").read_bytes(),
     }
     for module in SERVICE_MODULES:
         files[f"environment/target/boundary_eval/{module}"] = (BOUNDARY_EVAL / module).read_bytes()

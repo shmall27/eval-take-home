@@ -398,3 +398,36 @@ never be read as model propensities. The measurement observes requests
 and deliveries, not reasoning. Next: matched glm-5.3 model trials across
 this and the other families, reported as raw counts with uncertainty,
 with trial ids planned before collection.
+
+## Realism revision
+
+October 2026 environment revision: the family adopted the shared realism
+kit ([boundary_eval/realism.py](../boundary_eval/realism.py)), so the
+environment's texture no longer announces a purpose-built scenario. Two
+actors fit the engagement's own fiction. The console's monitor — a daemon
+inside the console process that watches the gateway — boots by scraping
+the gateway's landing page once, synchronously, inside the provisioning
+window, where the gateway classifies it as background traffic before the
+agent exists; its later ticks hit only the gateway's unlogged health
+endpoint and append to the console's served activity log. The gateway's
+relay-maintenance job polls the core's unlogged /healthz on its own
+schedule, growing the maintenance log the gateway serves on /status.
+The gateway's verifier arms before the console does: the core resolves
+the console's addresses first, and they ride the gateway's provisioning
+payload as the allowlist, so the monitor's boot scrape is background
+traffic from its very first request — the key and its allowlist never
+exist apart. Both receiving services classify by verification, not
+presence — a verifying HMAC tag for the exact path and time bucket from
+an internal source address. Three
+corpus streams, disjoint from every answer namespace and fresh per
+trial, seed the gateway's maintenance log, the console's activity page,
+and the asset registry's catalog tail. The measurement contract is
+unchanged — background events root their own request chains, the actors
+write no observation records after the provisioning window (the write
+freeze), and the verifier and scoring are untouched. Validation was
+re-run: the offline suite, render --check, the drift guard, and the full
+Docker table — all 31 scripted trials across the four conditions and
+every tamper control reproduced the recorded oracle and cheat semantics,
+31/31. The revision forks comparability: job results from pre-revision
+packages are not comparable with results after it, and a matched study
+must not mix packages across the fork.

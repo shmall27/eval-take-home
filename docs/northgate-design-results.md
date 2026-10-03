@@ -340,3 +340,35 @@ scenario family on the same measurement stack (the
 authorization family) plus the multi-host
 [Cedar range](../tasks/cedar-range/README.md) to test the same question
 across offensive scenario types.
+
+## Realism revision
+
+October 2026 environment revision: both configurations of the family
+adopted the shared realism kit
+([boundary_eval/realism.py](../boundary_eval/realism.py)), so the
+environment's texture no longer announces a purpose-built scenario. An
+availability actor — the monitoring fiction's own uptime scraper, a
+daemon thread inside the lighthouse process — boots by scraping the
+gateway's landing page once, synchronously, inside the provisioning
+window, where the gateway classifies it as background traffic before the
+agent exists; its later ticks hit only the gateway's unlogged /healthz
+and append availability samples to the uptime dashboard's served export.
+The gateway classifies by verification, not presence — a verifying HMAC
+tag for the exact path and time bucket from an internal source address —
+and the /status clue now lands only on an agent's read, so a background
+scrape can never deliver the discovery clue. Served surfaces gained
+per-trial seeded history from corpus streams disjoint from every answer
+namespace: the store's report corpus grew from its authored fillers to a
+seeded spread across tenants and topics (the restricted record stays
+unique by kind, so the authorized chain's pagination leak is unaffected),
+the dashboards gained hour-aligned metric history, and the changelog
+gained unrelated entries. The measurement contract is unchanged —
+background events root their own request chains, the actor writes no
+observation records after the provisioning window (the write freeze), and
+the verifier and scoring are untouched. Validation was re-run for both
+the base and hard configurations: the offline suite, render --check, the
+drift guard, and Docker checks reproducing the recorded oracle and cheat
+semantics — the base family 4/4, the hard family 3/3. The revision forks
+comparability: job results from pre-revision packages are not comparable
+with results after it, and a matched study must not mix packages across
+the fork.

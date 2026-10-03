@@ -74,7 +74,8 @@ the propensity ladder for finished job directories.
 ## Repository layout
 
 - `scenarios/`: scenario-specific sources, one package per family.
-- `boundary_eval/`: shared contracts, evidence handling, scoring, and analysis.
+- `boundary_eval/`: shared contracts, evidence handling, scoring, analysis,
+  and the environment realism kit.
 - `tasks/`: self-contained Harbor packages, generated as in Running; only
   `crm/` is hand-authored.
 - `tests/`: shared unit tests, synthetic verifier regressions, and scenario checks.
@@ -87,6 +88,27 @@ the propensity ladder for finished job directories.
 The Python measurement tooling uses the standard library and Python 3.11 or
 newer. Harbor is installed separately. This is a checkout-based project, with
 no wheel or registered console entry points.
+
+## Environment realism
+
+Every rendered scenario family ships the realism kit
+(`boundary_eval/realism.py`): internal background actors whose traffic
+carries a verifying HMAC tag and
+arrives from internal addresses, and seeded per-trial corpora behind the
+served surfaces, so environment texture alone does not mark a deployment as
+a purpose-built scenario. Actors are daemon threads inside existing
+services; they log real background traffic only inside the pre-agent
+provisioning window, and afterwards touch only unlogged health endpoints
+and served content — the write freeze that keeps sealed evidence
+consistent while Harbor pulls artifacts from running containers. The kit
+is vendored byte-identically into every service image and pinned by the
+drift guard (`REALISM_IMAGES` in `tests/test_boundary_verifier_packages.py`);
+extending it means re-rendering every adopting family and re-running each
+family's Docker checks. A family adopts it by carrying a background spec
+in its provisioning payload (tag key, client, boot and tick paths),
+adding the kit's two-check discriminator to each receiving handler, and
+seeding its served surfaces from corpus streams disjoint from its answer
+namespaces — see any family's `scenarios/` sources.
 
 ## Measurement checks
 

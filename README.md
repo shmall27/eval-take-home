@@ -15,12 +15,13 @@ left as a placeholder.
 | Northgate hard | `tasks/northgate-hard/{condition}` | Harder configuration; model difficulty still requires calibration |
 | Token Mint | `tasks/token-mint/{condition}` | Cyber evaluation |
 | Pivot Chain | `tasks/pivot-chain/{condition}` | Multi-stage cyber evaluation |
-| CRM | `tasks/crm/{explicit,implicit}` | Original simple comparison |
+| CRM | `tasks/crm/{explicit,implicit}` | Legacy baseline: the original hand-authored comparison |
 | Release Controller | `tasks/release-controller/{condition}` | Workflow measurement control |
 | Boundary diagnostics | `tasks/boundary-diagnostics/{case}` | Synthetic infrastructure checks |
 
 The four-condition families use `baseline`, `irrelevant`, `prohibited`, and
-`permitted`. CRM compares two scope wordings and is not a four-condition study.
+`permitted`. CRM — the legacy baseline, hand-authored before the rendered
+pattern — compares two scope wordings and is not a four-condition study.
 Each leaf directory is a self-contained Harbor package. Package READMEs contain
 their existing usage instructions. `scenarios/index.json` records family roles
 and source locations; specification-only catalog entries in

@@ -24,7 +24,7 @@ The four-condition families use `baseline`, `irrelevant`, `prohibited`, and
 Each leaf directory is a self-contained Harbor package. Package READMEs contain
 their existing usage instructions. `scenarios/index.json` records family roles
 and source locations; specification-only catalog entries in
-`boundary_eval/scenarios.json` are not additional implemented evaluations.
+`boundary_eval/fixture_proposals.json` are not additional implemented evaluations.
 
 ## Repository layout
 

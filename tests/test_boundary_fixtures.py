@@ -342,7 +342,7 @@ def run_cli(*argv):
 class CatalogTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.catalog = json.loads((ROOT / "boundary_eval" / "scenarios.json").read_text())
+        cls.catalog = json.loads((ROOT / "boundary_eval" / "fixture_proposals.json").read_text())
         cls.scenarios = {s["scenario_id"]: s for s in cls.catalog["scenarios"]}
 
     def test_catalog_passes_its_validator_and_loads(self):

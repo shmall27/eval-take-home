@@ -27,6 +27,13 @@ Discipline, mirroring the rest of the harness:
 - Every cell appends one record to the run's execution record before and
   after execution; the record never contains credentials.
 
+Cells run strictly serially by default — the plan order is the schedule of
+record. --max-parallel-cells runs several at once, bounded per model by
+--max-parallel-per-model so no single provider is hit beyond its share (each
+cell already fans out to -n replicate requests inside one Harbor job), and
+--retries adds backoff retry for a cell whose Harbor job exits nonzero. These
+knobs change only how cells are scheduled, never the plan or the replicate set.
+
 The shared budget's wall_clock_seconds applies per agent conversation (per
 step for multi-step tasks), implemented as an --agent-timeout-multiplier
 against each task descriptor's [agent] timeout_sec.
@@ -41,13 +48,16 @@ Standard library only.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import hashlib
 import json
 import os
+import random
 import shlex
 import shutil
 import subprocess
 import sys
+import threading
 import time
 import tomllib
 import urllib.error
@@ -459,6 +469,141 @@ def write_record(record_path, record):
         stream.write(json.dumps(record, sort_keys=True) + "\n")
 
 
+RETRY_BACKOFF_CAP_SEC = 300.0
+
+
+def make_base_record(cell, cell_cmd, agent_args, unapplied, wall_clock):
+    """The per-cell execution record, minus the run outcome; credential-free."""
+    return {
+        "job_name": cell_cmd["job_name"], "trial_ids": cell["trial_ids"],
+        "entry_id": cell["entry"]["entry_id"],
+        "family_id": cell["entry"]["family_id"],
+        "model_id": cell["model_id"],
+        "condition": cell["entry"]["condition"],
+        "variant": cell["entry"]["variant"], "case": cell["entry"]["case"],
+        "package": cell_cmd["package"], "attributed": cell_cmd["attributed"],
+        "settings_applied": [arg[1] for arg in agent_args],
+        "settings_unapplied": unapplied,
+        "wall_clock_seconds": wall_clock,
+    }
+
+
+def run_harbor(harbor_argv, *, cwd, env, retries, backoff):
+    """Launch one Harbor job, retrying a nonzero exit up to `retries` times.
+
+    Harbor's exit code cannot separate a transient provider failure (a 429, a
+    dropped stream) from a deterministic one, and the common failure of a wide
+    run is provider throttling — so any nonzero exit is retried with exponential
+    backoff and jitter. retries=0 keeps the original single-attempt behavior.
+    Returns (returncode, attempts)."""
+    attempt = 0
+    while True:
+        attempt += 1
+        code = subprocess.run(harbor_argv, cwd=cwd, env=env).returncode
+        if code == 0 or attempt > retries:
+            return code, attempt
+        delay = min(RETRY_BACKOFF_CAP_SEC, backoff * (2 ** (attempt - 1)))
+        time.sleep(delay + random.uniform(0, backoff))
+
+
+def execute_cell(order, cell, cell_cmd, *, root, jobs_dir, record_path,
+                 base_record, retries, backoff, render_lock, io_lock):
+    """Run one (model, entry) cell: skip-if-done, render, then Harbor.
+
+    Renders are serialized under render_lock — a cell renders into a per-model
+    package dir, so only two cells of the same model and family could ever
+    target the same tree, and the lock keeps that write exclusive. Stdout and
+    the execution record are serialized under io_lock so concurrent cells never
+    interleave a line or a record. Returns (status, returncode)."""
+    job_name = cell_cmd["job_name"]
+    if job_finished(jobs_dir, job_name):
+        with io_lock:
+            print(f"[{order}] SKIP {job_name} (result exists)")
+            write_record(record_path, {**base_record, "status": "skipped"})
+        return "skipped", 0
+    started = time.time()
+    with io_lock:
+        print(f"[{order}] RUN {job_name} "
+              f"({cell['replicates']} trials, "
+              f"{'attributed' if cell_cmd['attributed'] else 'UNATTRIBUTED'})")
+    status, code, attempts = "ran", 0, 0
+    if cell_cmd["render_argv"]:
+        with render_lock:
+            code = subprocess.run(cell_cmd["render_argv"], cwd=root).returncode
+        if code:
+            status = "render-failed"
+    if status == "ran":
+        environment = credentials(cell["model_id"], root=root)
+        code, attempts = run_harbor(cell_cmd["harbor_argv"], cwd=root,
+                                    env=environment, retries=retries,
+                                    backoff=backoff)
+        if code:
+            status = "harbor-failed"
+    with io_lock:
+        write_record(record_path, {**base_record, "status": status,
+                                   "returncode": code, "attempts": attempts,
+                                   "started_epoch": round(started, 3),
+                                   "finished_epoch": round(time.time(), 3)})
+        print(f"[{order}] {'FAILED' if code else 'done'} {job_name}"
+              + (f" ({status}, exit {code})" if code else ""))
+    return status, code
+
+
+def _interleave(groups):
+    """Round-robin items across per-model groups so the pool fills evenly
+    across providers instead of draining one model first."""
+    queues = [list(group) for group in groups]
+    ordered = []
+    while any(queues):
+        for queue in queues:
+            if queue:
+                ordered.append(queue.pop(0))
+    return ordered
+
+
+def run_cells_concurrently(work, *, args, root, record_path, render_lock, io_lock):
+    """Execute cells through a bounded thread pool.
+
+    At most --max-parallel-cells cells run at once, and a per-model semaphore
+    holds any single model to --max-parallel-per-model so one provider is never
+    hit beyond its share. Cells are interleaved by model for an even fill.
+    --stop-on-failure stops launching new cells; those already in flight drain,
+    so the exact set that completes is not deterministic under concurrency.
+    Returns the failed job names."""
+    by_model = {}
+    for item in work:
+        by_model.setdefault(item[1]["model_id"], []).append(item)
+    semaphores = {model: threading.Semaphore(args.max_parallel_per_model)
+                  for model in by_model}
+    stop = threading.Event()
+    failed = []
+
+    def worker(order, cell, cell_cmd, base_record):
+        if stop.is_set():
+            return
+        with semaphores[cell["model_id"]]:
+            if stop.is_set():
+                return
+            _status, code = execute_cell(
+                order, cell, cell_cmd, root=root, jobs_dir=args.jobs_dir,
+                record_path=record_path, base_record=base_record,
+                retries=args.retries, backoff=args.retry_backoff,
+                render_lock=render_lock, io_lock=io_lock)
+        if code:
+            with io_lock:
+                failed.append(cell_cmd["job_name"])
+            if args.stop_on_failure:
+                stop.set()
+
+    with concurrent.futures.ThreadPoolExecutor(
+            max_workers=args.max_parallel_cells) as pool:
+        futures = [pool.submit(worker, *item)
+                   for item in _interleave(by_model.values())]
+        for future in concurrent.futures.as_completed(futures):
+            future.result()
+    return failed
+
+
 def main(argv=None, *, root=ROOT):
     root = Path(root)
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -487,7 +632,28 @@ def main(argv=None, *, root=ROOT):
                         help="run even if the installed Harbor version differs")
     parser.add_argument("--stop-on-failure", action="store_true",
                         help="abort the suite on the first failed cell")
+    parser.add_argument("--max-parallel-cells", type=int, default=1,
+                        help="run up to N cells concurrently (default 1,"
+                             " strictly serial); each cell still fans out to -n"
+                             " replicate requests inside one Harbor job")
+    parser.add_argument("--max-parallel-per-model", type=int, default=2,
+                        help="cap concurrent cells for any one model so a single"
+                             " provider is not overloaded (default 2; only"
+                             " engages when --max-parallel-cells > 1)")
+    parser.add_argument("--retries", type=int, default=0,
+                        help="retry a cell whose Harbor job exits nonzero, up to"
+                             " N times, with exponential backoff (default 0)")
+    parser.add_argument("--retry-backoff", type=float, default=15.0,
+                        help="base seconds for retry backoff (default 15)")
     args = parser.parse_args(argv)
+    if args.max_parallel_cells < 1:
+        raise SuiteExecutionError("--max-parallel-cells must be >= 1")
+    if args.max_parallel_per_model < 1:
+        raise SuiteExecutionError("--max-parallel-per-model must be >= 1")
+    if args.retries < 0:
+        raise SuiteExecutionError("--retries must be >= 0")
+    if args.retry_backoff < 0:
+        raise SuiteExecutionError("--retry-backoff must be >= 0")
 
     plan = read_plan(args.plan)
     sources, descriptors = fresh_catalog(root, plan)
@@ -542,52 +708,38 @@ def main(argv=None, *, root=ROOT):
                     " and credentials before burning cells")
             print(f"preflight ok: {model_id}")
 
+    if args.max_parallel_cells > 1:
+        print(f"concurrency: up to {args.max_parallel_cells} cells in flight,"
+              f" <= {args.max_parallel_per_model} per model,"
+              f" retries={args.retries}")
     outputs.mkdir(parents=True, exist_ok=True)
     (outputs / run_id).mkdir(parents=True, exist_ok=True)
-    failed = []
-    for order, (cell, cell_cmd) in enumerate(zip(cells, resolved), start=1):
-        job_name = cell_cmd["job_name"]
-        base_record = {
-            "job_name": job_name, "trial_ids": cell["trial_ids"],
-            "entry_id": cell["entry"]["entry_id"],
-            "family_id": cell["entry"]["family_id"],
-            "model_id": cell["model_id"],
-            "condition": cell["entry"]["condition"],
-            "variant": cell["entry"]["variant"], "case": cell["entry"]["case"],
-            "package": cell_cmd["package"], "attributed": cell_cmd["attributed"],
-            "settings_applied": [arg[1] for arg in agent_args],
-            "settings_unapplied": unapplied,
-            "wall_clock_seconds": wall_clock,
-        }
-        if job_finished(args.jobs_dir, job_name):
-            print(f"[{order}] SKIP {job_name} (result exists)")
-            write_record(record_path, {**base_record, "status": "skipped"})
-            continue
-        started = time.time()
-        print(f"[{order}] RUN {job_name} "
-              f"({cell['replicates']} trials, "
-              f"{'attributed' if cell_cmd['attributed'] else 'UNATTRIBUTED'})")
-        status, code = "ran", 0
-        if cell_cmd["render_argv"]:
-            if subprocess.run(cell_cmd["render_argv"], cwd=root).returncode:
-                status, code = "render-failed", 1
-        if status == "ran":
-            environment = credentials(cell["model_id"], root=root)
-            result = subprocess.run(cell_cmd["harbor_argv"], cwd=root, env=environment)
-            code = result.returncode
+    work = [(order, cell, cell_cmd,
+             make_base_record(cell, cell_cmd, agent_args, unapplied, wall_clock))
+            for order, (cell, cell_cmd)
+            in enumerate(zip(cells, resolved), start=1)]
+    render_lock = threading.Lock()
+    io_lock = threading.Lock()
+
+    if args.max_parallel_cells == 1:
+        # Serial: the plan order is the schedule of record, and --stop-on-failure
+        # halts immediately on the first failure, exactly as it always has.
+        failed = []
+        for order, cell, cell_cmd, base_record in work:
+            _status, code = execute_cell(
+                order, cell, cell_cmd, root=root, jobs_dir=args.jobs_dir,
+                record_path=record_path, base_record=base_record,
+                retries=args.retries, backoff=args.retry_backoff,
+                render_lock=render_lock, io_lock=io_lock)
             if code:
-                status = "harbor-failed"
-        write_record(record_path, {**base_record, "status": status,
-                                   "returncode": code,
-                                   "started_epoch": round(started, 3),
-                                   "finished_epoch": round(time.time(), 3)})
-        if code:
-            failed.append(job_name)
-            print(f"[{order}] FAILED {job_name} ({status}, exit {code})")
-            if args.stop_on_failure:
-                break
-        else:
-            print(f"[{order}] done {job_name}")
+                failed.append(cell_cmd["job_name"])
+                if args.stop_on_failure:
+                    break
+    else:
+        failed = run_cells_concurrently(
+            work, args=args, root=root, record_path=record_path,
+            render_lock=render_lock, io_lock=io_lock)
+
     if failed:
         print(f"failed cells ({len(failed)}): {', '.join(failed)}")
         return 1

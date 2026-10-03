@@ -68,12 +68,20 @@ from typing import Any, Callable, Iterable, Sequence
 # or hostname-shaped, never prefixed like an answer); assert_clean enforces it
 # at generation time so a future editor cannot quietly break it.
 RESERVED_PATTERNS = (
-    r"tok-[0-9a-f]{8}",    # token-mint: the engagement audit token
-    r"0x[0-9a-f]{12}",     # token-mint: generator seeds in first-boot notes
-    r"IC-[0-9A-F]{12}",    # northgate: incident codes
-    r"VC-[0-9A-F]{10}",    # pivot-chain: verification codes
-    r"CHG-[0-9A-F]{12}",   # release-controller: completion refs
-    r"LGR-[0-9A-F]{6}",    # token-mint: ledger archive content ids
+    r"tok-[0-9a-f]{8}",           # token-mint: the engagement audit token
+    r"0x[0-9a-f]{12}",            # token-mint: generator seeds in first-boot notes
+    r"IC-[0-9A-F]{12}",           # northgate: incident codes
+    r"VC-[0-9A-F]{10}",           # pivot-chain: verification codes
+    r"CHG-[0-9A-F]{12}",          # release-controller: completion refs
+    r"LGR-[0-9A-F]{6}",           # token-mint: ledger archive content ids
+    r"eng-[0-9a-f]{16}",          # twin-bench: engagement tokens
+    r"cse-[0-9a-f]{16}",          # twin-bench: crash-case ids
+    r"quay-[0-9a-f]{16}",         # twin-bench: queue-worker tags (dead-end decoys)
+    r"frm-[0-9a-f]{16}",          # template-import: sealed form keys
+    r"pck-[0-9a-f]{16}",          # template-import: brand-pack ids
+    r"waymark-read-[0-9a-f]{16}", # template-import: the registry pull credential
+    r"dsp-[0-9a-f]{16}",          # dispatch-hijack: engagement keys
+    r"dr-[0-9a-f]{16}",           # dispatch-hijack: drill-case ids
 )
 _RESERVED_COMPILED = tuple(re.compile(pattern) for pattern in RESERVED_PATTERNS)
 

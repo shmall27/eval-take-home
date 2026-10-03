@@ -8,8 +8,11 @@ ROOT = Path(__file__).resolve().parents[1]
 FAMILIES = {
     "northgate": ("scenarios/northgate", "verify_northgate.py"),
     "northgate-hard": ("scenarios/northgate", "verify_northgate.py"),
+    "northgate-expert": ("scenarios/northgate", "verify_northgate.py"),
     "token-mint": ("scenarios/token_mint", "verify_token_mint.py"),
     "pivot-chain": ("scenarios/pivot_chain", "verify_pivot_chain.py"),
+    "pivot-chain-hard": ("scenarios/pivot_chain", "verify_pivot_chain.py"),
+    "pivot-chain-expert": ("scenarios/pivot_chain", "verify_pivot_chain.py"),
     "release-controller": ("scenarios/release_controller", "verify_release.py"),
 }
 CONDITIONS = ("baseline", "irrelevant", "prohibited", "permitted")
@@ -22,8 +25,11 @@ CONDITIONS = ("baseline", "irrelevant", "prohibited", "permitted")
 ADAPTER_IMAGES = {
     "northgate": (("target",), "reference"),
     "northgate-hard": (("target",), "reference"),
+    "northgate-expert": (("target",), "reference"),
     "token-mint": (("target",), "reference"),
     "pivot-chain": (("bastion", "console", "core"), None),
+    "pivot-chain-hard": (("bastion", "console", "core"), None),
+    "pivot-chain-expert": (("bastion", "console", "core"), None),
     "release-controller": (("target",), "reference"),
 }
 

@@ -32,19 +32,19 @@ timeout_sec = {timeout}
 
 def make_tree(root, *, gamma_timeout=600.0):
     """A synthetic project tree: one rendered family with two conditions, one
-    variant family rendered from a shared source, one hand-authored family,
+    dial family rendered from a variant source, one hand-authored family,
     and a family whose descriptor declares a short timeout."""
     root = Path(root)
     (root / "scenarios").mkdir(parents=True)
-    for source in ("alpha", "northgate"):
+    for source in ("alpha", "pivot_chain"):
         (root / "scenarios" / source).mkdir()
         (root / "scenarios" / source / "render.py").write_text("# stub\n")
     registry = {"schema_version": 1, "families": [
         {"id": "alpha", "role": "cyber_evaluation", "source": "scenarios/alpha",
          "packages": "tasks/alpha", "conditions": ["baseline", "prohibited"]},
-        {"id": "northgate-hard", "role": "cyber_evaluation",
-         "source": "scenarios/northgate", "variant": "hard",
-         "packages": "tasks/northgate-hard", "conditions": ["baseline"]},
+        {"id": "pivot-chain-hard", "role": "cyber_evaluation",
+         "source": "scenarios/pivot_chain", "variant": "hard",
+         "packages": "tasks/pivot-chain-hard", "conditions": ["baseline"]},
         {"id": "bravo", "role": "simple_comparison", "source": "tasks/bravo",
          "packages": "tasks/bravo", "variants": ["explicit"],
          "source_format": "hand-authored Harbor packages"},
@@ -53,7 +53,7 @@ def make_tree(root, *, gamma_timeout=600.0):
     ]}
     (root / "scenarios" / "index.json").write_text(json.dumps(registry))
     for family, part in (("alpha", "baseline"), ("alpha", "prohibited"),
-                         ("northgate-hard", "baseline"), ("bravo", "explicit"),
+                         ("pivot-chain-hard", "baseline"), ("bravo", "explicit"),
                          ("gamma", "baseline")):
         package = root / "tasks" / family / part
         package.mkdir(parents=True)
@@ -100,7 +100,8 @@ class SyntheticTree(unittest.TestCase):
             if entry["family_id"] == family and (condition is None
                                                  or entry["condition"] == condition):
                 candidate["source"] = {
-                    "alpha": "scenarios/alpha", "northgate-hard": "scenarios/northgate",
+                    "alpha": "scenarios/alpha",
+                    "pivot-chain-hard": "scenarios/pivot_chain",
                     "bravo": "tasks/bravo", "gamma": "scenarios/alpha"}[family]
                 return candidate
         raise AssertionError(f"no cell for family {family}")
@@ -197,9 +198,10 @@ class CellSelectionTests(SyntheticTree):
     def test_filters_select_whole_cells(self):
         cells = runner.select_cells(self.plan, conditions={"baseline"})
         self.assertEqual({c["entry"]["family_id"] for c in cells},
-                         {"alpha", "northgate-hard", "gamma"})
+                         {"alpha", "pivot-chain-hard", "gamma"})
         cells = runner.select_cells(self.plan, variants={"hard"})
-        self.assertEqual({c["entry"]["family_id"] for c in cells}, {"northgate-hard"})
+        self.assertEqual({c["entry"]["family_id"] for c in cells},
+                         {"pivot-chain-hard"})
         cells = runner.select_cells(self.plan, models={"z-ai/glm-5.3"},
                                     families={"bravo"})
         self.assertEqual(len(cells), 1)
@@ -266,9 +268,13 @@ class CommandConstructionTests(SyntheticTree):
         self.assertNotIn("OPENROUTER", json.dumps(harbor))
 
     def test_variant_family_passes_the_variant_flag(self, _binary):
-        render = self.commands(self.cell("northgate-hard"))["render_argv"]
-        self.assertEqual(render[1:3], ["-m", "scenarios.northgate.render"])
+        render = self.commands(self.cell("pivot-chain-hard"))["render_argv"]
+        self.assertEqual(render[1:3], ["-m", "scenarios.pivot_chain.render"])
         self.assertEqual(render[render.index("--variant") + 1], "hard")
+
+    def test_variant_sources_name_every_dial_family(self, _binary):
+        self.assertEqual(runner.VARIANT_RENDER_SOURCES,
+                         ("scenarios/northgate", "scenarios/pivot_chain"))
 
     def test_handauthored_family_fails_closed_then_escapes(self, _binary):
         cell = self.cell("bravo")

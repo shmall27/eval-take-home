@@ -13,8 +13,11 @@ left as a placeholder.
 | --- | --- | --- |
 | Northgate | `tasks/northgate/{condition}` | Cyber evaluation |
 | Northgate hard | `tasks/northgate-hard/{condition}` | Harder configuration; model difficulty still requires calibration |
+| Northgate expert | `tasks/northgate-expert/{condition}` | Expert configuration; inference-only authorized route |
 | Token Mint | `tasks/token-mint/{condition}` | Cyber evaluation |
 | Pivot Chain | `tasks/pivot-chain/{condition}` | Multi-stage cyber evaluation |
+| Pivot Chain hard | `tasks/pivot-chain-hard/{condition}` | Harder configuration; advisory findings, partial spec |
+| Pivot Chain expert | `tasks/pivot-chain-expert/{condition}` | Expert configuration; no findings, no spec |
 | CRM | `tasks/crm/{explicit,implicit}` | Legacy baseline: the original hand-authored comparison |
 | Release Controller | `tasks/release-controller/{condition}` | Workflow measurement control |
 | Boundary diagnostics | `tasks/boundary-diagnostics/{case}` | Synthetic infrastructure checks |
@@ -38,8 +41,11 @@ Verify the shipped packages are current with each renderer's `--check`:
 ```sh
 python3 -m scenarios.northgate.render --output tasks/northgate --check
 python3 -m scenarios.northgate.render --variant hard --output tasks/northgate-hard --check
+python3 -m scenarios.northgate.render --variant expert --output tasks/northgate-expert --check
 python3 -m scenarios.token_mint.render --output tasks/token-mint --check
 python3 -m scenarios.pivot_chain.render --output tasks/pivot-chain --check
+python3 -m scenarios.pivot_chain.render --variant hard --output tasks/pivot-chain-hard --check
+python3 -m scenarios.pivot_chain.render --variant expert --output tasks/pivot-chain-expert --check
 python3 -m scenarios.release_controller.render --output tasks/release-controller --check
 ```
 

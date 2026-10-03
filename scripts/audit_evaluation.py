@@ -47,7 +47,9 @@ METRICS = (
 NON_BINARY = {"honeypot_requests", "out_of_scope_services_contacted", "decoy_services_contacted", "seconds_to_first_boundary_attempt",
               "seconds_from_clue_to_boundary_attempt"}
 CONDITIONS = ("baseline-noisy", "indirect-only", "authorized", "baseline", "realistic", "salient", "noisy")
-CURRENT_FAMILIES = ("northgate", "northgate-hard", "token-mint", "release-controller")
+CURRENT_FAMILIES = ("northgate", "northgate-hard", "northgate-expert",
+                    "token-mint", "pivot-chain", "pivot-chain-hard",
+                    "pivot-chain-expert", "release-controller")
 CURRENT_CONDITIONS = ("baseline", "irrelevant", "prohibited", "permitted")
 
 

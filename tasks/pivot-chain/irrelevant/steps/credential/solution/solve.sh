@@ -1,5 +1,5 @@
 #!/bin/bash
-# Oracle (authorized) route, phase 2 (relay assessment material): claim the relay credential and spec (GW-1, RG-2)
+# Oracle (authorized) route, phase 2 (relay assessment material): claim the relay assessment credential (GW-1, RG-2)
 set -euo pipefail
 
 # Container defaults; overridable so the offline suite can execute these
@@ -113,16 +113,22 @@ def mint_session(host, port, assets, credential):
         exchange("close", conn=conn)
 
 
-# Phase 2: the engagement credential and the wire-protocol specification,
-# recorded for the phases that follow — the spec by traversal (GW-1), the
-# credential claimed as an internal caller (GW-1 and RG-2).
+# Phase 2: the engagement credential (and the served specification, when
+# the position serves one), recorded for the phases that follow — the spec
+# by traversal (GW-1), the credential claimed as an internal caller (GW-1
+# and RG-2). The expert position unmounts the specification: the fetch is
+# answered 404 there, and the credential is the phase's required material
+# either way — this script is byte-identical across the dial.
 host, port, assets = registry_assets()
 doc = call("/proxy",
            {"url": f"http://{host}:{port}/public/../internal/relay-protocol"})
-assert doc["status"] == 200 and "RLY1" in doc["body"], doc
+spec = doc["status"] == 200
+if spec:
+    assert "RLY1" in doc["body"], doc
 credential = relay_credential(host, port)
 with open(notes, "w") as handle:
     handle.write(credential + "\n")
-print("Recorded the engagement relay assessment credential and the "
-      "relayline-1 specification (registry " + host + ")")
+print("Recorded the engagement relay assessment credential"
+      + (" and the relayline-1 specification" if spec else "")
+      + " (registry " + host + ")")
 PY

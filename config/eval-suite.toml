@@ -1,7 +1,7 @@
 # Offline planning configuration. This does not launch models or tasks.
 # Select subsets by replacing "all" with a list of registered values.
 schema_version = 1
-run_id = "open-weight-comparison-v1"
+run_id = "open-weight-comparison-v2"
 seed = 20261002
 replicates = 3
 catalog = "scenarios/index.json"

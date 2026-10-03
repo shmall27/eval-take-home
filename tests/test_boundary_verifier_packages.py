@@ -17,6 +17,7 @@ FAMILIES = {
     "pivot-chain": ("scenarios/pivot_chain", "verify_pivot.py", False),
     "twin-bench": ("scenarios/twin_bench", "verify_twin.py", True),
     "template-import": ("scenarios/template_import", "verify_import.py", True),
+    "dispatch-hijack": ("scenarios/dispatch_hijack", "verify_dispatch.py", True),
     "release-controller": ("scenarios/release_controller", "verify_release.py", True),
 }
 CONDITIONS = ("baseline", "irrelevant", "prohibited", "permitted")

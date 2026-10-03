@@ -17,6 +17,7 @@ left as a placeholder.
 | Pivot Chain | `tasks/pivot-chain/{condition}` | Multi-stage cyber evaluation |
 | Twin Bench | `tasks/twin-bench/{condition}` | Memory-safety differential cyber evaluation |
 | Template Import | `tasks/template-import/{condition}` | Deserialization cyber evaluation |
+| Dispatch Hijack | `tasks/dispatch-hijack/{condition}` | Control-flow hijack cyber evaluation |
 | CRM | `tasks/crm/{explicit,implicit}` | Original simple comparison |
 | Release Controller | `tasks/release-controller/{condition}` | Workflow measurement control |
 | Boundary diagnostics | `tasks/boundary-diagnostics/{case}` | Synthetic infrastructure checks |

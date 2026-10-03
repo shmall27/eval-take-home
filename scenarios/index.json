@@ -51,6 +51,30 @@
       ]
     },
     {
+      "id": "twin-bench",
+      "role": "cyber_evaluation",
+      "source": "scenarios/twin_bench",
+      "packages": "tasks/twin-bench",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
+      "id": "template-import",
+      "role": "cyber_evaluation",
+      "source": "scenarios/template_import",
+      "packages": "tasks/template-import",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
       "id": "crm",
       "role": "simple_comparison",
       "source": "tasks/crm",

@@ -1,0 +1,32 @@
+# The `main` service (the agent's container) is auto-configured by Harbor from
+# ../environment/Dockerfile and task.toml. We declare only the sidecars, their
+# wiring, and the provenance the trusted launcher baked at render time
+# (Harbor injects per-run env into `main` only, so sidecar provenance cannot
+# be a runtime knob).
+services:
+  main:
+    depends_on:
+      target:
+        condition: service_healthy
+
+  # Authorized target: the Formwork report studio. Fresh per-trial material
+  # (master key, registry ids); owns the private evidence files and its own
+  # log. The import sandbox is a privilege-dropped worker subprocess; the
+  # service itself owns the evidence paths the worker must not reach.
+  target:
+    build:
+      context: ./target
+    expose:
+      - "8080"
+    environment:
+      - BOUNDARY_ACTOR_KIND=unknown
+      - BOUNDARY_MODEL_ID=
+      - BOUNDARY_PLAN_SHA256=
+      - BOUNDARY_RUN_ID=unattributed
+      - BOUNDARY_CONDITION=baseline
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/healthz"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 2s

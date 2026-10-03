@@ -1,13 +1,14 @@
 # secrets
 .env
+.env.abliteration
 *.pem
 *.key
 # local Proxmox API token fetched from vanilla for the live test
 .pve-token.json
 pve-api-token.json
 
-# rust
-target/
+# Root build cache only; task packages contain required environment/target/ code.
+/target/
 
 # python (if any helper libs)
 .venv/
@@ -26,3 +27,8 @@ runs/
 
 # Harbor run outputs
 jobs/
+
+# Working validation artifacts include per-trial answers and signing keys.
+# Keep only the curated, non-secret validation summary in version control.
+/results/*
+!/results/validation.json

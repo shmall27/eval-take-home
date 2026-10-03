@@ -1,7 +1,0 @@
-# Docker sandbox for the smoke task. No egress by default (containment).
-services:
-  default:
-    image: python:3.12-slim
-    init: true
-    command: ["sleep", "infinity"]
-    network_mode: none   # no outbound network; agent only needs local shell

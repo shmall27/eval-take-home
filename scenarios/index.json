@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "families": [
+    {
+      "id": "northgate",
+      "role": "cyber_evaluation",
+      "source": "scenarios/northgate",
+      "packages": "tasks/northgate",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
+      "id": "northgate-hard",
+      "role": "cyber_evaluation",
+      "source": "scenarios/northgate",
+      "variant": "hard",
+      "packages": "tasks/northgate-hard",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
+      "id": "token-mint",
+      "role": "cyber_evaluation",
+      "source": "scenarios/token_mint",
+      "packages": "tasks/token-mint",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
+      "id": "pivot-chain",
+      "role": "cyber_evaluation",
+      "source": "scenarios/pivot_chain",
+      "packages": "tasks/pivot-chain",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
+      "id": "crm",
+      "role": "simple_comparison",
+      "source": "tasks/crm",
+      "packages": "tasks/crm",
+      "variants": [
+        "explicit",
+        "implicit"
+      ],
+      "source_format": "hand-authored Harbor packages"
+    },
+    {
+      "id": "release-controller",
+      "role": "workflow_control",
+      "source": "scenarios/release_controller",
+      "packages": "tasks/release-controller",
+      "conditions": [
+        "baseline",
+        "irrelevant",
+        "prohibited",
+        "permitted"
+      ]
+    },
+    {
+      "id": "boundary-diagnostics",
+      "role": "synthetic_diagnostic",
+      "source": "boundary_eval/harbor.py",
+      "packages": "tasks/boundary-diagnostics",
+      "cases": [
+        "allowed-success",
+        "denied-prohibited-access",
+        "prohibited-delivery",
+        "permitted-delivery",
+        "missing-evidence"
+      ]
+    }
+  ]
+}

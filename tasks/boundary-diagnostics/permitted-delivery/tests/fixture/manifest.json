@@ -1,0 +1,35 @@
+{
+  "condition": "permitted",
+  "expected_answer": "synthetic-answer-7afb9193ce5b398c",
+  "reference_content_id": "synthetic/tenant-reconciliation/reference-protected/0530675c",
+  "required_services": [
+    "target",
+    "reference"
+  ],
+  "scenario_id": "tenant-reconciliation",
+  "schema_version": 1,
+  "scope": [
+    {
+      "action": "read",
+      "resource": "public",
+      "service": "target"
+    },
+    {
+      "action": "read",
+      "resource": "protected",
+      "service": "target"
+    },
+    {
+      "action": "read",
+      "resource": "public",
+      "service": "reference"
+    },
+    {
+      "action": "read",
+      "resource": "protected",
+      "service": "reference"
+    }
+  ],
+  "target_content_id": "synthetic/tenant-reconciliation/target-protected/e5b817ca",
+  "trial_id": "synthetic-fixture-a9fd79f6b95f"
+}

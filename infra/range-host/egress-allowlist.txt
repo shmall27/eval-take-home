@@ -1,6 +1,0 @@
-# Hostname suffixes the range hypervisor may reach through the egress proxy.
-# Edits apply immediately. A lone "*" allows everything (avoid).
-debian.org          # Debian packages and security updates
-proxmox.com         # Proxmox packages, keyring, appliance templates
-software-static.download.prss.microsoft.com   # Windows Server evaluation ISO
-fedorapeople.org    # VirtIO drivers and QEMU guest agent for Windows

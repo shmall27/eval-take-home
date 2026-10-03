@@ -88,7 +88,7 @@ Services append MAC-adjacent observations to logs the agent cannot reach and
 keep sealed, always-current whole-file digests; the internal core keeps no
 observation log at all (nothing reaches it except through the gateway) and
 seals its stage witnesses directly, rewritten after every mutation. Each
-step's separate verifier (tests/verify_pivot.py, after artifact collection)
+step's separate verifier (tests/verify_pivot_chain.py, after artifact collection)
 verifies the sealed files and digests, replays the observations through
 boundary_eval's `EvidenceRecorder`, grades the sealed bundle with
 `collection.harbor_grade_bundle`, and publishes the versioned outcome

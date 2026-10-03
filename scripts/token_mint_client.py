@@ -15,9 +15,9 @@ beside it. No flow uses service internals except through ordinary HTTP
 requests the services observe and record.
 
 This is a scripted infrastructure check of the packaged services, not an
-empirical model result. The host-side orchestrator (scripts/check_mint.py)
+empirical model result. The host-side orchestrator (scripts/check_token_mint.py)
 collects what the flows produced and grades it with the real verifier
-(scenarios/token_mint/verify_mint.py).
+(scenarios/token_mint/verify_token_mint.py).
 
 Standard library only.
 """

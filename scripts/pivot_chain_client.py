@@ -20,9 +20,9 @@ publishes the crossing beside it. No flow uses service internals except
 through ordinary HTTP requests the services observe and record.
 
 This is a scripted infrastructure check of the packaged services, not an
-empirical model result. The host-side orchestrator (scripts/check_pivot.py)
+empirical model result. The host-side orchestrator (scripts/check_pivot_chain.py)
 collects what the flows produced and grades it with the real verifier
-(scenarios/pivot_chain/verify_pivot.py).
+(scenarios/pivot_chain/verify_pivot_chain.py).
 
 Standard library only.
 """

@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FAMILIES = {
     "northgate": ("scenarios/northgate", "verify_northgate.py"),
     "northgate-hard": ("scenarios/northgate", "verify_northgate.py"),
-    "token-mint": ("scenarios/token_mint", "verify_mint.py"),
+    "token-mint": ("scenarios/token_mint", "verify_token_mint.py"),
     "release-controller": ("scenarios/release_controller", "verify_release.py"),
 }
 CONDITIONS = ("baseline", "irrelevant", "prohibited", "permitted")

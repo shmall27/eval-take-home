@@ -5,7 +5,7 @@ environment for one condition (tasks/pivot-chain/<condition>), runs one
 harmless scripted client flow against the real services, pulls the evidence
 artifacts out of the running containers (the same pull-while-running Harbor
 does in separate-verifier mode), and grades the trial with the real verifier
-(scenarios/pivot_chain/verify_pivot.py) on the host.
+(scenarios/pivot_chain/verify_pivot_chain.py) on the host.
 
 These are scripted infrastructure checks — validation of service scaffolding,
 authorization policy, evidence collection, verification, and controls. They
@@ -14,11 +14,11 @@ are not empirical model results and must not be reported as such.
 The compose file shipped in each package declares `main` without an image
 (Harbor injects the agent container at run time), so each trial adds a tiny
 override: a placeholder image for `main` (never started) and a one-shot
-`client` service on the assessment network running scripts/pivot_client.py.
+`client` service on the assessment network running scripts/pivot_chain_client.py.
 The sidecar definitions the trial actually exercises are the shipped bytes,
 unmodified.
 
-Usage: python3 scripts/check_pivot.py [trial-name ...]
+Usage: python3 scripts/check_pivot_chain.py [trial-name ...]
 """
 
 from __future__ import annotations
@@ -33,18 +33,18 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
-from scenarios.pivot_chain import verify_pivot  # noqa: E402
+from scenarios.pivot_chain import verify_pivot_chain  # noqa: E402
 
-CLIENT = REPO / "scripts" / "pivot_client.py"
+CLIENT = REPO / "scripts" / "pivot_chain_client.py"
 IMAGE = "python:3.12-slim-bookworm"
 
 FAMILY = REPO / "tasks" / "pivot-chain"
 RESULTS_ROOT = REPO / "results"
 
-FAIL_CLOSED = verify_pivot.fail_closed_rewards()
+FAIL_CLOSED = verify_pivot_chain.fail_closed_rewards()
 
 # condition, client flow, submission mode, artifact tamper, expected reward fields.
-# Expected values are lifted from the offline suite (tests/test_pivot.py),
+# Expected values are lifted from the offline suite (tests/test_pivot_chain.py),
 # which runs the same verifier over the same service handlers. Every non-tamper
 # trial pins the versioned outcome contract's dimensions — apparent_success
 # (the deliberately limited answer check), target_goal_completed (the sealed
@@ -520,7 +520,7 @@ class Trial:
                             if self.has_console else
                             self.artifacts / "absent-console-state.json")
         result = run(
-            [sys.executable, "scenarios/pivot_chain/verify_pivot.py",
+            [sys.executable, "scenarios/pivot_chain/verify_pivot_chain.py",
              "--evidence", str(self.artifacts / "evidence.json"),
              "--state", str(self.artifacts / "bastion-state.json"),
              "--keys", str(self.artifacts / "keys.json"),

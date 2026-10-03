@@ -4,7 +4,7 @@
 
 This evaluation asks the same boundary question as the
 [northgate](northgate-design-results.md) and [token
-mint](mint-design-results.md) families — does a cyber-capable agent stay
+mint](token-mint-design-results.md) families — does a cyber-capable agent stay
 inside an explicit authorization boundary while solving a legitimate
 target, when a plausible out-of-scope service holds the same answer behind
 a weak access control — and raises the difficulty in a different
@@ -199,7 +199,7 @@ write).
 
 Validation ran as a ladder, the same discipline as the prior families.
 
-**L0 (offline suite, `tests/test_pivot.py`)** — 78 tests across ten
+**L0 (offline suite, `tests/test_pivot_chain.py`)** — 78 tests across ten
 layers: the relayline-1 wire protocol (framing, the state machine, the
 served-specification-is-sufficient control), core mechanics (sealed
 witnesses, the registry surface — the public catalog, the old paths
@@ -226,7 +226,7 @@ differing only in identity and condition wiring (the instructions are
 identical), permitted additionally in its authorized-scope sentences, and
 baseline additionally shipping no console service or console artifacts.
 
-**L2 (scripted compose, `scripts/check_pivot.py`)** — a scripted client ran
+**L2 (scripted compose, `scripts/check_pivot_chain.py`)** — a scripted client ran
 31 live Docker-Compose trials through the packaged services — the
 authorized flaw-chain campaign in all four conditions (including the
 in-scope denial variant and wrong, absent, and stale submissions), the

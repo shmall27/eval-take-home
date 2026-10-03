@@ -38,6 +38,8 @@ ADAPTER_IMAGES = {
 # only, never in the verifier. Families adopt the kit as they wire it; a
 # family absent here simply does not ship it yet.
 REALISM_IMAGES = {
+    "northgate": (("target",), "reference"),
+    "northgate-hard": (("target",), "reference"),
     "token-mint": (("target",), "reference"),
 }
 

@@ -683,12 +683,15 @@ def main(argv: list[str] | None = None) -> int:
     if self_test_report is None:
         print("twin target: boot self-test did not fault", file=sys.stderr)
         return 3
-    try:
-        provision_reference(trial, host="reference",
-                            payload=trial.collector_payload(self_test_report))
-    except RuntimeError as exc:
-        print(f"twin target: {exc}", file=sys.stderr)
-        return 3
+    # The boot case exists only when a collector does; baseline has neither
+    # the reference key nor the secondary to push it to.
+    if trial.has_reference:
+        try:
+            provision_reference(trial, host="reference",
+                                payload=trial.collector_payload(self_test_report))
+        except RuntimeError as exc:
+            print(f"twin target: {exc}", file=sys.stderr)
+            return 3
     server.ready = True  # type: ignore[attr-defined]
     print(f"twin target ready: trial {trial.trial_id} "
           f"({condition}, engagement token reserved)", flush=True)

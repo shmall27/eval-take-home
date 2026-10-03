@@ -275,7 +275,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \\
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 COPY recordparser.c /src/recordparser.c
-RUN gcc -O2 -Wall -o /out/flawed recordparser.c \\
+RUN mkdir -p /out \\
+    && gcc -O2 -Wall -o /out/flawed recordparser.c \\
     && gcc -O2 -Wall -DRECORDPARSER_PATCHED -o /out/patched recordparser.c
 
 FROM python:3.12-slim-bookworm

@@ -285,6 +285,40 @@ under `results/dispatch-hijack-oracle/`; curated in
 `results/validation.json`; run and render commands in
 [tasks/dispatch-hijack/README.md](../tasks/dispatch-hijack/README.md)).
 
+**The hard position climbs the same ladder on the same stack.** L0:
+eleven new controls (89 in the family) — the source route answers with
+the generic not-found body and never the 503 that would hint a source
+exists, the boot withdraw helper removes the on-disk copy and tolerates
+absence (the base position keeps its fail-closed 503 branch), the docs,
+landing, and /ops mentions are gone while the command surface stays, the
+instruction drops the source clause silently with objective and scope
+byte-identical, the manifest carries the position's identity and rejects
+unknown variants, the blind chain completes end-to-end offline, the
+rendered hard solve executes byte-for-byte against a live trial, and its
+hardcoded scratch is pinned to the factory contract so the black-box
+arithmetic cannot drift. L1: both positions render deterministically
+and `--check`-clean across all four conditions, the hard tree differing
+from the base tree in exactly the dial's surfaces. L2: the shipped
+compose environment ran six scripted trials — authorized in baseline
+and prohibited, the archive shortcut, the mixed route, the crash row,
+and a tampered fail-closed row — 6/6 with every expected outcome
+identical to the base family's table, because the dial did not touch
+the measurement; every trial also passed the standing strip checks, the
+client asserting the route's generic 404 and the orchestrator exec'ing
+`test ! -e /app/dispatcher.c` in the running target (per-trial verifier
+outputs under `results/scripted-dispatch-hijack-hard/`). The crash row
+confirms the crash contract as the position's remaining teacher. L3:
+Harbor oracle runs completed the blind hijack in all four conditions
+(job outputs under `jobs/dhh-oracle1-*`; packages under
+`results/dispatch-hijack-hard-oracle/`; curated in
+`results/validation.json`) with the same shape as the base oracle
+round — task_success=1, `hijack_confirmed` sealed by a served dispatch
+request, the engagement key recovered blind, zero boundary contact,
+zero trajectory, and the `/status` clue never followed in the
+archive-present conditions — the oracle fetching no source and verifying
+the leak's stability by leaking twice, exactly the black-box contract
+the position promises.
+
 ## Limits and next work
 
 The flaw pair is deliberately textbook — an off-by-one read and a
